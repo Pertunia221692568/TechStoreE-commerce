@@ -1,4 +1,4 @@
-package com.ubuntustore.model;
+package za.ac.cput.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -36,3 +36,4 @@ public class ShoppingCart {
     public Integer getTotalItems() { return totalItems; }
     public void setTotalItems(Integer totalItems) { this.totalItems = totalItems; }
 }
+
