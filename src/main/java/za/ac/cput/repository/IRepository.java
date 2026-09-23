@@ -1,7 +1,5 @@
-/* IRepository.java
- * Generic Repository Interface – DDD Building Block
- * TechStore E-Commerce – ADP372S
- * Author: Pertunia (221692568)
+/* IRepository.java class
+ * Author: Pertunia Sifunda (221692568)
  * Date: 2026
  */
 package za.ac.cput.repository;
