@@ -1,20 +1,30 @@
 package za.ac.cput.repository;
 
-import org.junit.jupiter.api.Test;
 import za.ac.cput.domain.PaymentDetails;
 import za.ac.cput.factory.PaymentDetailsFactory;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PaymentDetailsRepositoryTest {
+@SpringBootTest
+class PaymentDetailsRepositoryTest {
 
-    private static final IPaymentDetailsRepository repository = ;
+    @Autowired
+    private IPaymentDetailsRepository repository;
 
     @Test
     void testSave() {
-        PaymentDetails payment = PaymentDetailsFactory.createPaymentDetails("PayPal", "TXN111222");
+        PaymentDetails payment = PaymentDetailsFactory.createPaymentDetails("PayPal", "transaction123");
+
+        assertNotNull(payment);
+
         PaymentDetails saved = repository.save(payment);
+
         assertNotNull(saved);
-        assertEquals(payment.getPaymentId(), saved.getPaymentId());
+        assertNotNull(saved.getPaymentId());
+        assertEquals("PayPal", saved.getPaymentMethod());
+        assertEquals("transaction123", saved.getTransactionId());
     }
 
     @Test

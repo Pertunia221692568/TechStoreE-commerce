@@ -11,21 +11,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
-@DataJpaTest
-@TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
-})
+@SpringBootTest
 class IOrderRepositoryTest {
 
     @Autowired
@@ -34,15 +27,17 @@ class IOrderRepositoryTest {
     @Autowired
     private ICustomerRepository customerRepository;
 
-    @Autowired
-    private TestEntityManager entityManager;
-
     private Customer savedCustomer;
 
     @BeforeEach
     void setUp() {
+        // Clean previous data to avoid unique constraint errors
+        orderRepository.deleteAll();
+        customerRepository.deleteAll();
+
         Customer customer = CustomerFactory.create(
-                "Pertunia", "Sifunda", "pertunia@test.co.za",
+                "Pertunia", "Sifunda",
+                "pertunia" + System.currentTimeMillis() + "@test.co.za",
                 "071 000 1111", "10 Long Street, Cape Town");
         savedCustomer = customerRepository.save(customer);
     }
@@ -133,4 +128,3 @@ class IOrderRepositoryTest {
         assertEquals(Order.Status.SHIPPED, shipped.get(0).getStatus());
     }
 }
-

@@ -5,11 +5,11 @@ package za.ac.cput.repository;
 
 import za.ac.cput.domain.Products;
 import za.ac.cput.factory.ProductsFactory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,15 +17,16 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
-})
-class IProductRepositoryTest {
+@SpringBootTest
+class IProductsRepositoryTest {
 
     @Autowired
     private IProductsRepository productRepository;
+
+    @BeforeEach
+    void setUp() {
+        productRepository.deleteAll(); // Clean table before every test
+    }
 
     @Test
     @DisplayName("Should save and find a product by ID")
@@ -82,4 +83,3 @@ class IProductRepositoryTest {
         assertFalse(productRepository.findById(product.getId()).isPresent());
     }
 }
-
