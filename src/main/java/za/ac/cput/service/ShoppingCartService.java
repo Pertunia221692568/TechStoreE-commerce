@@ -21,10 +21,11 @@ public class ShoppingCartService {
     }
 
     public ShoppingCart update(ShoppingCart cart) {
-        return repository.update(cart);
+        return repository.save(cart);
     }
 
     public boolean delete(ShoppingCart cart) {
-        return repository.delete(cart);
+        repository.delete(cart);
+        return true;
     }
 }

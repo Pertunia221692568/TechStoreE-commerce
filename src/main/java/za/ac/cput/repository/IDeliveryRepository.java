@@ -1,11 +1,10 @@
 package za.ac.cput.repository;
 
 import za.ac.cput.domain.Delivery;
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface IDeliveryRepository {
-    Delivery save(Delivery delivery);
-    List<Delivery> findAll();
-    Delivery update(Delivery delivery);
-    boolean delete(Delivery delivery);
+@Repository
+public interface IDeliveryRepository extends JpaRepository<Delivery, String> {
+
 }

@@ -21,10 +21,11 @@ public class PaymentDetailsService {
     }
 
     public PaymentDetails update(PaymentDetails payment) {
-        return repository.update(payment);
+        return repository.save(payment);   // use save() for update
     }
 
     public boolean delete(PaymentDetails payment) {
-        return repository.delete(payment);
+        repository.delete(payment);        // delete() returns void
+        return true;
     }
 }

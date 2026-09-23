@@ -21,10 +21,11 @@ public class DeliveryService {
     }
 
     public Delivery update(Delivery delivery) {
-        return repository.update(delivery);
+        return repository.save(delivery);   // use save() for update
     }
 
     public boolean delete(Delivery delivery) {
-        return repository.delete(delivery);
+        repository.delete(delivery);        // delete() returns void
+        return true;
     }
 }
