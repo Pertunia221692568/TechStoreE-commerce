@@ -1,64 +1,37 @@
 package za.ac.cput.domain;
-import java.time.LocalDateTime;
-import java.util.Objects;
 
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "registrations")
 public class Registration {
-    private String registrationId;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String email;
-    private String fullName;
-    private String passwordHash;
+    private String password;
     private LocalDateTime registrationDate;
 
     public Registration() {
     }
 
-    public Registration(String registrationId, String email,
-                        String fullName, String passwordHash,
-                        LocalDateTime registrationDate) {
-        this.registrationId = registrationId;
+    public Registration(String email, String password, LocalDateTime registrationDate) {
         this.email = email;
-        this.fullName = fullName;
-        this.passwordHash = passwordHash;
+        this.password = password;
         this.registrationDate = registrationDate;
     }
 
-    public String getRegistrationId() {
-        return registrationId;
-    }
+    public Long getId() { return id; }
 
-    public void setRegistrationId(String registrationId) {
-        this.registrationId = registrationId;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getEmail() {
-        return email;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public LocalDateTime getRegistrationDate() {
-        return registrationDate;
-    }
-
-    public void setRegistrationDate(LocalDateTime registrationDate) {
-        this.registrationDate = registrationDate;
-    }
+    public LocalDateTime getRegistrationDate() { return registrationDate; }
+    public void setRegistrationDate(LocalDateTime registrationDate) { this.registrationDate = registrationDate; }
 }

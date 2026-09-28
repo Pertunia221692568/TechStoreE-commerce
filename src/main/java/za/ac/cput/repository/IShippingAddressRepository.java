@@ -1,16 +1,9 @@
 package za.ac.cput.repository;
 
-
 import za.ac.cput.domain.ShippingAddress;
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface IShippingAddressRepository {
-
-    ShippingAddress save(ShippingAddress address);
-
-    List<ShippingAddress> findAll();
-
-    ShippingAddress update(ShippingAddress address);
-
-    boolean delete(ShippingAddress address);
+@Repository
+public interface IShippingAddressRepository extends JpaRepository<ShippingAddress, Long> {
 }

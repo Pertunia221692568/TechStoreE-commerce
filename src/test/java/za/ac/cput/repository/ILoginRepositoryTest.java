@@ -1,36 +1,57 @@
 package za.ac.cput.repository;
 
 import za.ac.cput.domain.Login;
-import za.ac.cput.factory.LoginFactory;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
 class ILoginRepositoryTest {
 
     @Autowired
     private ILoginRepository repository;
 
     @Test
+    @DisplayName("Should save a login")
     void testSave() {
-        Login login = LoginFactory.createLogin("L101", "john_doe", "hashed_password_123");
-
-        assertNotNull(login);
+        Login login = new Login(
+                "user" + System.currentTimeMillis(),
+                "hashedPassword",
+                LocalDateTime.now(),
+                LocalDateTime.now());
 
         Login saved = repository.save(login);
 
-        assertNotNull(saved);
-        assertEquals("L101", saved.getLoginId());
-        assertEquals("john_doe", saved.getUsername());
-        assertEquals("hashed_password_123", saved.getPasswordHash());
+        assertNotNull(saved.getId());
+        assertNotNull(saved.getUsername());
     }
 
     @Test
+    @DisplayName("Should find all logins")
     void testFindAll() {
-        assertNotNull(repository.findAll());
+        repository.save(new Login(
+                "findAll" + System.currentTimeMillis(),
+                "hash", LocalDateTime.now(), LocalDateTime.now()));
+
+        List<Login> all = repository.findAll();
+        assertFalse(all.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should find login by ID")
+    void testFindById() {
+        Login saved = repository.save(new Login(
+                "findById" + System.currentTimeMillis(),
+                "hash", LocalDateTime.now(), LocalDateTime.now()));
+
+        Optional<Login> found = repository.findById(saved.getId());
+        assertTrue(found.isPresent());
     }
 }

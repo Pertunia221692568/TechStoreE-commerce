@@ -5,18 +5,11 @@ import za.ac.cput.domain.Login;
 
 public class LoginFactory {
 
-    public static Login createLogin(
-            String loginId,
-            String username,
-            String passwordHash) {
+    public static Login createLogin(String username, String passwordHash) {
 
-        return new Login(
-                loginId,
-                username,
-                passwordHash,
-                LocalDateTime.now(),
-                null
-        );
+        if (username == null || username.isEmpty() || passwordHash == null || passwordHash.isEmpty()) {
+            return null;
+        }
+        return new Login(username, passwordHash, LocalDateTime.now(), null);
     }
 }
-

@@ -8,20 +8,20 @@ public class LoginFactoryTest {
 
     @Test
     void testCreateLogin() {
-        Login login = LoginFactory.createLogin("L101", "john_doe", "hashed_password_123");
+
+        Login login = LoginFactory.createLogin("john_doe", "hashed_password_123");
+
         assertNotNull(login);
-        assertEquals("L101", login.getLoginId());
         assertEquals("john_doe", login.getUsername());
         assertEquals("hashed_password_123", login.getPasswordHash());
         assertNotNull(login.getLastPasswordDate());
         assertNull(login.getLastLoginDate());
     }
 
+
     @Test
     void testCreateLoginFail() {
-        // Without validation in LoginFactory, passing empty values still creates a valid object instance
-        Login login = LoginFactory.createLogin("", "john_doe", "hashed_password_123");
-        assertNotNull(login);
-        assertEquals("", login.getLoginId());
+        Login login = LoginFactory.createLogin("", "hashed_password_123");
+        assertNull(login);
     }
 }

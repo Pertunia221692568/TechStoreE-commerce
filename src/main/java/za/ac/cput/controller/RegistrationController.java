@@ -3,7 +3,11 @@ package za.ac.cput.controller;
 import java.util.List;
 import za.ac.cput.domain.Registration;
 import za.ac.cput.service.RegistrationService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+@RestController
+@RequestMapping("/api/registrations")
 public class RegistrationController {
 
     private final RegistrationService service;
@@ -12,23 +16,31 @@ public class RegistrationController {
         this.service = service;
     }
 
-    public Registration create(Registration registration) {
-        return service.create(registration);
+    @PostMapping
+    public ResponseEntity<Registration> create(@RequestBody Registration registration) {
+        return ResponseEntity.ok(service.create(registration));
     }
 
-    public Registration get(String id) {
-        return service.get(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<Registration> get(@PathVariable Long id) {
+        return service.get(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    public List<Registration> getAll() {
-        return service.getAll();
+    @GetMapping
+    public ResponseEntity<List<Registration>> getAll() {
+        return ResponseEntity.ok(service.getAll());
     }
 
-    public Registration update(Registration registration) {
-        return service.update(registration);
+    @PutMapping
+    public ResponseEntity<Registration> update(@RequestBody Registration registration) {
+        return ResponseEntity.ok(service.update(registration));
     }
 
-    public boolean delete(String id) {
-        return service.delete(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

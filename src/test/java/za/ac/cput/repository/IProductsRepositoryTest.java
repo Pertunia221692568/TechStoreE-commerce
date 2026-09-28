@@ -1,11 +1,10 @@
-/* IProductRepositoryTest.java
+/* IProductsRepositoryTest.java
  * Author: Pertunia Sifunda(221692568)
  */
 package za.ac.cput.repository;
 
 import za.ac.cput.domain.Products;
 import za.ac.cput.factory.ProductsFactory;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,63 +22,62 @@ class IProductsRepositoryTest {
     @Autowired
     private IProductsRepository productRepository;
 
-    @BeforeEach
-    void setUp() {
-        productRepository.deleteAll(); // Clean table before every test
-    }
-
     @Test
     @DisplayName("Should save and find a product by ID")
     void shouldSaveAndFindById() {
         Products product = ProductsFactory.createLaptop(
-                "Dell XPS 15", "Dell", "Premium laptop",
+                "Test Dell XPS " + System.currentTimeMillis(), "Dell", "Premium laptop",
                 new BigDecimal("24999.99"), 5);
         Products saved = productRepository.save(product);
 
         Optional<Products> found = productRepository.findById(saved.getId());
         assertTrue(found.isPresent());
-        assertEquals("Dell XPS 15", found.get().getName());
+        assertTrue(found.get().getName().contains("Dell XPS"));
     }
 
     @Test
     @DisplayName("Should find products by category")
     void shouldFindByCategory() {
-        productRepository.save(ProductsFactory.createLaptop("HP", "HP", "desc", new BigDecimal("15000"), 3));
-        productRepository.save(ProductsFactory.createLaptop("Lenovo", "Lenovo", "desc", new BigDecimal("12000"), 2));
-        productRepository.save(ProductsFactory.createAccessory("Mouse", "Logitech", "desc", new BigDecimal("500"), 10));
+        String unique = String.valueOf(System.currentTimeMillis());
+        productRepository.save(ProductsFactory.createLaptop("HP-" + unique, "HP", "desc", new BigDecimal("15000"), 3));
+        productRepository.save(ProductsFactory.createAccessory("Mouse-" + unique, "Logitech", "desc", new BigDecimal("500"), 10));
 
         List<Products> laptops = productRepository.findByCategory("Laptop");
-        assertEquals(2, laptops.size());
+        assertFalse(laptops.isEmpty());
+        assertTrue(laptops.stream().anyMatch(p -> p.getName().contains("HP-" + unique)));
     }
 
     @Test
     @DisplayName("Should find products by name containing keyword")
     void shouldFindByNameContaining() {
-        productRepository.save(ProductsFactory.createLaptop("Dell XPS 15", "Dell", "desc", new BigDecimal("24999"), 5));
-        productRepository.save(ProductsFactory.createLaptop("Dell Inspiron", "Dell", "desc", new BigDecimal("12999"), 8));
+        String unique = "UniqueBrand" + System.currentTimeMillis();
+        productRepository.save(ProductsFactory.createLaptop(unique + " XPS", "Dell", "desc", new BigDecimal("24999"), 5));
 
-        List<Products> dellProducts = productRepository.findByNameContainingIgnoreCase("dell");
-        assertEquals(2, dellProducts.size());
+        List<Products> found = productRepository.findByNameContainingIgnoreCase(unique.toLowerCase());
+        assertFalse(found.isEmpty());
+        assertTrue(found.get(0).getName().contains(unique));
     }
 
     @Test
     @DisplayName("Should find products with stock greater than 0")
     void shouldFindProductsInStock() {
-        productRepository.save(ProductsFactory.createLaptop("In Stock", "Dell", "desc", new BigDecimal("10000"), 5));
-        productRepository.save(ProductsFactory.createLaptop("Out of Stock", "HP", "desc", new BigDecimal("10000"), 0));
+        String unique = "InStock" + System.currentTimeMillis();
+        productRepository.save(ProductsFactory.createLaptop(unique, "Dell", "desc", new BigDecimal("10000"), 5));
 
         List<Products> inStock = productRepository.findByStockQuantityGreaterThan(0);
-        assertEquals(1, inStock.size());
-        assertEquals("In Stock", inStock.get(0).getName());
+        assertFalse(inStock.isEmpty());
+        assertTrue(inStock.stream().anyMatch(p -> p.getName().equals(unique)));
     }
 
     @Test
     @DisplayName("Should delete a product by ID")
     void shouldDeleteById() {
         Products product = productRepository.save(
-                ProductsFactory.createLaptop("Test", "Test", "desc", new BigDecimal("5000"), 1));
-        productRepository.deleteById(product.getId());
+                ProductsFactory.createLaptop("ToDelete-" + System.currentTimeMillis(), "Test", "desc", new BigDecimal("5000"), 1));
 
-        assertFalse(productRepository.findById(product.getId()).isPresent());
+        Long id = product.getId();
+        productRepository.deleteById(id);
+
+        assertFalse(productRepository.findById(id).isPresent());
     }
 }

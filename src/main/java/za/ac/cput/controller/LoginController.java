@@ -1,10 +1,13 @@
 package za.ac.cput.controller;
 
-
 import java.util.List;
 import za.ac.cput.domain.Login;
 import za.ac.cput.service.LoginService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+@RestController
+@RequestMapping("/api/logins")
 public class LoginController {
 
     private final LoginService service;
@@ -13,24 +16,31 @@ public class LoginController {
         this.service = service;
     }
 
-    public Login create(Login login) {
-        return service.create(login);
+    @PostMapping
+    public ResponseEntity<Login> create(@RequestBody Login login) {
+        return ResponseEntity.ok(service.create(login));
     }
 
-    public Login get(String id) {
-        return service.get(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<Login> get(@PathVariable Long id) {
+        return service.get(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    public List<Login> getAll() {
-        return service.getAll();
+    @GetMapping
+    public ResponseEntity<List<Login>> getAll() {
+        return ResponseEntity.ok(service.getAll());
     }
 
-    public Login update(Login login) {
-        return service.update(login);
+    @PutMapping
+    public ResponseEntity<Login> update(@RequestBody Login login) {
+        return ResponseEntity.ok(service.update(login));
     }
 
-    public boolean delete(String id) {
-        return service.delete(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
-

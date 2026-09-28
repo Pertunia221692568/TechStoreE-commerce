@@ -8,18 +8,19 @@ public class RegistrationFactoryTest {
 
     @Test
     void testCreateRegistration() {
-        Registration registration = RegistrationFactory.createRegistration("REG101", "john@example.com", "John Doe", "hashed_pwd_123");
+
+        Registration registration = RegistrationFactory.createRegistration("john@example.com", "hashed_pwd_123");
+
         assertNotNull(registration);
-        assertEquals("REG101", registration.getRegistrationId());
         assertEquals("john@example.com", registration.getEmail());
-        assertEquals("John Doe", registration.getFullName());
-        assertEquals("hashed_pwd_123", registration.getPasswordHash());
+        assertEquals("hashed_pwd_123", registration.getPassword());
+        assertNotNull(registration.getRegistrationDate());
     }
 
     @Test
     void testCreateRegistrationFail() {
-        Registration registration = RegistrationFactory.createRegistration("", "john@example.com", "John Doe", "hashed_pwd_123");
-        assertNotNull(registration);
-        assertEquals("", registration.getRegistrationId());
+
+        Registration registration = RegistrationFactory.createRegistration("", "hashed_pwd_123");
+        assertNull(registration); // Now expects null because validation failed
     }
 }

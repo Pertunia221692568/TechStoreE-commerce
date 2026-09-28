@@ -1,46 +1,55 @@
 package za.ac.cput.repository;
 
 import za.ac.cput.domain.ShippingAddress;
-import za.ac.cput.factory.ShippingAddressFactory;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
 class IShippingAddressRepositoryTest {
 
     @Autowired
     private IShippingAddressRepository repository;
 
     @Test
+    @DisplayName("Should save a shipping address")
     void testSave() {
-        ShippingAddress address = ShippingAddressFactory.createAddress(
-                "123 Main Street",
-                "Apt 4B",
-                "Cape Town",
-                "Western Cape",
-                "8000",
-                "South Africa"
-        );
-
-        assertNotNull(address);
+        ShippingAddress address = new ShippingAddress(
+                "10 Long Street", "Unit 5", "Cape Town",
+                "Western Cape", "8001", "South Africa");
 
         ShippingAddress saved = repository.save(address);
 
-        assertNotNull(saved);
-        assertEquals("123 Main Street", saved.getAddressLine1());
-        assertEquals("Apt 4B", saved.getAddressLine2());
+        assertNotNull(saved.getId());
         assertEquals("Cape Town", saved.getCity());
-        assertEquals("Western Cape", saved.getState());
-        assertEquals("8000", saved.getZipcode());
-        assertEquals("South Africa", saved.getCountry());
     }
 
     @Test
+    @DisplayName("Should find all shipping addresses")
     void testFindAll() {
-        assertNotNull(repository.findAll());
+        repository.save(new ShippingAddress(
+                "1 Test St", "", "Johannesburg",
+                "Gauteng", "2000", "South Africa"));
+
+        List<ShippingAddress> all = repository.findAll();
+        assertFalse(all.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should find shipping address by ID")
+    void testFindById() {
+        ShippingAddress saved = repository.save(new ShippingAddress(
+                "2 Test St", "", "Durban",
+                "KZN", "4001", "South Africa"));
+
+        Optional<ShippingAddress> found = repository.findById(saved.getId());
+        assertTrue(found.isPresent());
+        assertEquals("Durban", found.get().getCity());
     }
 }

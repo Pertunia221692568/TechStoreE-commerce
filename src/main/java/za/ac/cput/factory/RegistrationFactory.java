@@ -1,24 +1,15 @@
 package za.ac.cput.factory;
 
-
-
 import java.time.LocalDateTime;
 import za.ac.cput.domain.Registration;
 
 public class RegistrationFactory {
 
-    public static Registration createRegistration(
-            String registrationId,
-            String email,
-            String fullName,
-            String passwordHash) {
+    public static Registration createRegistration(String email, String password) {
 
-        return new Registration(
-                registrationId,
-                email,
-                fullName,
-                passwordHash,
-                LocalDateTime.now()
-        );
+        if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
+            return null;
+        }
+        return new Registration(email, password, LocalDateTime.now());
     }
 }

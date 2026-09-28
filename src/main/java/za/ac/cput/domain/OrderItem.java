@@ -3,12 +3,15 @@
  */
 package za.ac.cput.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 
 @Entity
 @Table(name = "order_items")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class OrderItem {
 
     @Id
@@ -17,10 +20,12 @@ public class OrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonIgnore   // prevent Order ↔ OrderItem cycle
     private Order order;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Products product;
 
     @Column(nullable = false)
@@ -40,6 +45,7 @@ public class OrderItem {
 
     // Getters
     public Long getId()              { return id; }
+    @JsonIgnore
     public Order getOrder()          { return order; }
     public Products getProduct()      { return product; }
     public int getQuantity()         { return quantity; }

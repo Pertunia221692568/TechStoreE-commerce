@@ -4,6 +4,8 @@
  */
 package za.ac.cput.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "customers")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Customer {
 
     @Id
@@ -30,6 +33,7 @@ public class Customer {
     private String address;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore   // prevents infinite Customer ↔ Order recursion
     private List<Order> orders = new ArrayList<>();
 
     protected Customer() {}
@@ -49,6 +53,7 @@ public class Customer {
     public String getEmail()       { return email; }
     public String getPhone()       { return phone; }
     public String getAddress()     { return address; }
+    @JsonIgnore
     public List<Order> getOrders() { return orders; }
     public String getFullName()    { return firstName + " " + lastName; }
 
@@ -90,4 +95,3 @@ public class Customer {
         }
     }
 }
-

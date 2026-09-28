@@ -1,21 +1,10 @@
 package za.ac.cput.repository;
 
-
-
-
 import za.ac.cput.domain.Login;
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-    public interface ILoginRepository {
-
-        Login save(Login login);
-
-        Login findById(String loginId);
-
-        List<Login> findAll();
-
-        Login update(Login login);
-
-        boolean delete(String loginId);
-    }
+@Repository
+public interface ILoginRepository extends JpaRepository<Login, Long> {
+}
 

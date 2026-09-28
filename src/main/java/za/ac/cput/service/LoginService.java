@@ -1,10 +1,12 @@
 package za.ac.cput.service;
 
-
 import java.util.List;
+import java.util.Optional;
 import za.ac.cput.domain.Login;
 import za.ac.cput.repository.ILoginRepository;
+import org.springframework.stereotype.Service;
 
+@Service
 public class LoginService {
 
     private final ILoginRepository repository;
@@ -17,7 +19,7 @@ public class LoginService {
         return repository.save(login);
     }
 
-    public Login get(String id) {
+    public Optional<Login> get(Long id) {
         return repository.findById(id);
     }
 
@@ -26,10 +28,10 @@ public class LoginService {
     }
 
     public Login update(Login login) {
-        return repository.update(login);
+        return repository.save(login);
     }
 
-    public boolean delete(String id) {
-        return repository.delete(id);
+    public void delete(Long id) {
+        repository.deleteById(id);
     }
 }

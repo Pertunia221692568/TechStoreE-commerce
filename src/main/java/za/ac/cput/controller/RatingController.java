@@ -1,10 +1,13 @@
 package za.ac.cput.controller;
 
-
 import java.util.List;
 import za.ac.cput.domain.Rating;
 import za.ac.cput.service.RatingService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+@RestController
+@RequestMapping("/api/ratings")
 public class RatingController {
 
     private final RatingService service;
@@ -13,24 +16,31 @@ public class RatingController {
         this.service = service;
     }
 
-    public Rating create(Rating rating) {
-        return service.create(rating);
+    @PostMapping
+    public ResponseEntity<Rating> create(@RequestBody Rating rating) {
+        return ResponseEntity.ok(service.create(rating));
     }
 
-    public Rating get(String id) {
-        return service.get(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<Rating> get(@PathVariable Long id) {
+        return service.get(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    public List<Rating> getAll() {
-        return service.getAll();
+    @GetMapping
+    public ResponseEntity<List<Rating>> getAll() {
+        return ResponseEntity.ok(service.getAll());
     }
 
-    public Rating update(Rating rating) {
-        return service.update(rating);
+    @PutMapping
+    public ResponseEntity<Rating> update(@RequestBody Rating rating) {
+        return ResponseEntity.ok(service.update(rating));
     }
 
-    public boolean delete(String id) {
-        return service.delete(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
-

@@ -1,20 +1,9 @@
 package za.ac.cput.repository;
 
-
 import za.ac.cput.domain.Rating;
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface IRatingRepository {
-
-
-        Rating save(Rating rating);
-
-        Rating findById(String ratingId);
-
-        List<Rating> findAll();
-
-        Rating update(Rating rating);
-
-        boolean delete(String ratingId);
-    }
-
+@Repository
+public interface IRatingRepository extends JpaRepository<Rating, Long> {
+}

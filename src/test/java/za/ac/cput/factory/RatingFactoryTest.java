@@ -8,17 +8,20 @@ public class RatingFactoryTest {
 
     @Test
     void testCreateRating() {
-        Rating rating = RatingFactory.createRating("R101", 5, "Great service!");
+
+        Rating rating = RatingFactory.createRating(5, "Great service!");
+
         assertNotNull(rating);
-        assertEquals("R101", rating.getRatingId());
         assertEquals(5, rating.getScore());
         assertEquals("Great service!", rating.getComment());
+        assertNotNull(rating.getRatingDate());
     }
 
     @Test
     void testCreateRatingFail() {
-        Rating rating = RatingFactory.createRating("", 5, "Great service!");
-        assertNotNull(rating);
-        assertEquals("", rating.getRatingId());
+        // Pass a null score to trigger the validation we added in Step1
+        Rating rating = RatingFactory.createRating(null, "Great service!");
+
+        assertNull(rating); // Expects null because validation failed
     }
 }
