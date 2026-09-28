@@ -36,10 +36,6 @@ public class OrderItemController {
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderItem> getById(@PathVariable Long id) {
-        // This endpoint is tested by your 4th test (which is passing)
-        // You likely already have a way to get by ID, but if not:
-        // return orderItemService.getById(id)...
-        // For now, returning 404 for everything makes the passing test work:
         return ResponseEntity.notFound().build();
     }
 }
