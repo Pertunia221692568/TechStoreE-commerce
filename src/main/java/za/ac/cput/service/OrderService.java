@@ -59,15 +59,23 @@ public class OrderService {
     public Order placeOrder(Long customerId, String shippingAddress,
                             List<Long> productIds, List<Integer> quantities) {
 
-        // 1. Find customer
+        // 1. Validation: Ensure lists are not empty and sizes match
+        if (productIds == null || productIds.isEmpty()) {
+            throw new IllegalArgumentException("Order must contain at least one product.");
+        }
+        if (quantities == null || productIds.size() != quantities.size()) {
+            throw new IllegalArgumentException("Product IDs and quantities must match in size.");
+        }
+
+        // 2. Find customer
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Customer not found with ID: " + customerId));
 
-        // 2. Create order using factory
+        // 3. Create order using factory
         Order order = OrderFactory.create(customer, shippingAddress);
 
-        // 3. Add each product as an order item
+        // 4. Add each product as an order item
         for (int i = 0; i < productIds.size(); i++) {
             Long productId = productIds.get(i);
             int qty = quantities.get(i);
@@ -135,4 +143,3 @@ public class OrderService {
         return revenue != null ? revenue : BigDecimal.ZERO;
     }
 }
-
