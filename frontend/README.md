@@ -1,4 +1,4 @@
-# Nexora – React Frontend for TechStore E-commerce
+# TechVault – React Frontend for TechStore E-commerce
 
 Premium React frontend for the Spring Boot TechStore backend (ADP372S).
 
