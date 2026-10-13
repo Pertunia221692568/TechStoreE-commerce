@@ -28,7 +28,7 @@ class ShoppingCartServiceTest {
     @BeforeEach
     void setUp() {
         cart = new ShoppingCart();
-        cart.setId(1L);
+        cart.setCartId("1");
     }
 
     @Test
@@ -38,18 +38,18 @@ class ShoppingCartServiceTest {
         ShoppingCart saved = shoppingCartService.save(cart);
 
         assertNotNull(saved);
-        assertEquals(1L, saved.getId());
+        assertEquals("1", saved.getCartId());
         verify(shoppingCartRepository, times(1)).save(cart);
     }
 
     @Test
     void testFindShoppingCartById() {
-        when(shoppingCartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(shoppingCartRepository.findById("1")).thenReturn(Optional.of(cart));
 
-        Optional<ShoppingCart> found = shoppingCartService.findById(1L);
+        Optional<ShoppingCart> found = shoppingCartService.findById("1");
 
         assertTrue(found.isPresent());
-        assertEquals(1L, found.get().getId());
-        verify(shoppingCartRepository, times(1)).findById(1L);
+        assertEquals("1", found.get().getCartId());
+        verify(shoppingCartRepository, times(1)).findById("1");
     }
 }

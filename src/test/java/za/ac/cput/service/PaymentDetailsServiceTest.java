@@ -28,7 +28,7 @@ class PaymentDetailsServiceTest {
     @BeforeEach
     void setUp() {
         paymentDetails = new PaymentDetails();
-        paymentDetails.setId(1L);
+        paymentDetails.setPaymentId("1");
     }
 
     @Test
@@ -38,18 +38,18 @@ class PaymentDetailsServiceTest {
         PaymentDetails saved = paymentDetailsService.save(paymentDetails);
 
         assertNotNull(saved);
-        assertEquals(1L, saved.getId());
+        assertEquals("1", saved.getPaymentId());
         verify(paymentDetailsRepository, times(1)).save(paymentDetails);
     }
 
     @Test
     void testFindPaymentDetailsById() {
-        when(paymentDetailsRepository.findById(1L)).thenReturn(Optional.of(paymentDetails));
+        when(paymentDetailsRepository.findById("1")).thenReturn(Optional.of(paymentDetails));
 
-        Optional<PaymentDetails> found = paymentDetailsService.findById(1L);
+        Optional<PaymentDetails> found = paymentDetailsService.findById("1");
 
         assertTrue(found.isPresent());
-        assertEquals(1L, found.get().getId());
-        verify(paymentDetailsRepository, times(1)).findById(1L);
+        assertEquals("1", found.get().getPaymentId());
+        verify(paymentDetailsRepository, times(1)).findById("1");
     }
 }

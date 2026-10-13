@@ -5,6 +5,7 @@ import za.ac.cput.repository.IShoppingCartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ShoppingCartService {
@@ -14,6 +15,10 @@ public class ShoppingCartService {
 
     public ShoppingCart save(ShoppingCart cart) {
         return repository.save(cart);
+    }
+
+    public Optional<ShoppingCart> findById(String id) {
+        return repository.findById(id);
     }
 
     public List<ShoppingCart> findAll() {

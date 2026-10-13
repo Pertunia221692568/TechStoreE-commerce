@@ -2,7 +2,8 @@ package za.ac.cput.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import za.ac.cput.service.PaymentDetailsService;
@@ -10,7 +11,8 @@ import za.ac.cput.service.PaymentDetailsService;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(PaymentDetailsController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 class PaymentDetailsControllerTest {
 
     @Autowired
@@ -20,8 +22,8 @@ class PaymentDetailsControllerTest {
     private PaymentDetailsService paymentDetailsService;
 
     @Test
-    void testGetPaymentDetails() throws Exception {
-        mockMvc.perform(get("/paymentdetails/get/1"))
+    void testGetAllPaymentDetails() throws Exception {
+        mockMvc.perform(get("/payment-details/getall"))
                 .andExpect(status().isOk());
     }
 }

@@ -28,7 +28,7 @@ class DeliveryServiceTest {
     @BeforeEach
     void setUp() {
         delivery = new Delivery();
-        delivery.setId(1L);
+        delivery.setDeliveryId("1");
     }
 
     @Test
@@ -38,18 +38,18 @@ class DeliveryServiceTest {
         Delivery saved = deliveryService.save(delivery);
 
         assertNotNull(saved);
-        assertEquals(1L, saved.getId());
+        assertEquals("1", saved.getDeliveryId());
         verify(deliveryRepository, times(1)).save(delivery);
     }
 
     @Test
     void testFindDeliveryById() {
-        when(deliveryRepository.findById(1L)).thenReturn(Optional.of(delivery));
+        when(deliveryRepository.findById("1")).thenReturn(Optional.of(delivery));
 
-        Optional<Delivery> found = deliveryService.findById(1L);
+        Optional<Delivery> found = deliveryService.findById("1");
 
         assertTrue(found.isPresent());
-        assertEquals(1L, found.get().getId());
-        verify(deliveryRepository, times(1)).findById(1L);
+        assertEquals("1", found.get().getDeliveryId());
+        verify(deliveryRepository, times(1)).findById("1");
     }
 }
