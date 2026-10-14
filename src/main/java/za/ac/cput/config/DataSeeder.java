@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 /**
  * Adds starter products to the database the first time the backend runs
  * (only when the products table is empty).
- * Pictures live in: frontend/public/images/products/
  */
 @Configuration
 public class DataSeeder {

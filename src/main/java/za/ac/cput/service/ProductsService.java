@@ -49,7 +49,7 @@ public class ProductsService {
         return productRepository.save(product);
     }
 
-    /** Create with picture and condition (used by the admin page). */
+    /** Create with picture and condition  */
     public Products create(String name, String brand, String description,
                            BigDecimal price, int stock, String category,
                            String imageUrl, String itemCondition) {
@@ -59,7 +59,7 @@ public class ProductsService {
         return productRepository.save(product);
     }
 
-    /** Update including picture and condition. */
+
     public Products update(Long id, String name, String brand, String description,
                            BigDecimal price, int stock, String category,
                            String imageUrl, String itemCondition) {
