@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 /**
- * This class Represents a tech product (laptop, accessory, etc.)
+ * This class Represents our tech products (laptop, accessory, etc.)
  * sold on our TechStore platform.
  */
 @Entity
@@ -36,6 +36,13 @@ public class Products {
     @Column(nullable = false)
     private String category; // e.g. Laptop, Mouse, Keyboard, Monitor
 
+    // Path or URL of the product picture, e.g. /images/products/dell-xps.jpg
+    @Column(length = 1000)
+    private String imageUrl;
+
+    // "New" or "Second-hand"
+    private String itemCondition;
+
     protected Products() {}
 
 
@@ -57,6 +64,8 @@ public class Products {
     public int getStockQuantity()  { return stockQuantity; }
     public String getCategory()    { return category; }
     public boolean isInStock()     { return stockQuantity > 0; }
+    public String getImageUrl()      { return imageUrl; }
+    public String getItemCondition() { return itemCondition; }
 
     // Setters
     public void setName(String name)               { this.name = name; }
@@ -65,6 +74,8 @@ public class Products {
     public void setPrice(BigDecimal price)         { this.price = price; }
     public void setStockQuantity(int qty)          { this.stockQuantity = qty; }
     public void setCategory(String category)       { this.category = category; }
+    public void setImageUrl(String imageUrl)       { this.imageUrl = imageUrl; }
+    public void setItemCondition(String c)         { this.itemCondition = c; }
 
     /**
      * Reduces stock when an order is placed.
