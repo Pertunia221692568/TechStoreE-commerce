@@ -50,5 +50,5 @@ The backend follows a layered design: **Controller** (REST endpoints) → **Serv
    npm run dev
    ```
    
-##UML Diagram
+### UML Diagram
 <img src="./TechVault-UML.svg" alt="TechVault UML Diagram">
