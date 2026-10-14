@@ -44,13 +44,33 @@ public class ProductsService {
     }
 
     public Products create(String name, String brand, String description,
-                          BigDecimal price, int stock, String category) {
+                           BigDecimal price, int stock, String category) {
         Products product = ProductsFactory.create(name, brand, description, price, stock, category);
         return productRepository.save(product);
     }
 
+    /** Create with picture and condition (used by the admin page). */
+    public Products create(String name, String brand, String description,
+                           BigDecimal price, int stock, String category,
+                           String imageUrl, String itemCondition) {
+        Products product = ProductsFactory.create(name, brand, description, price, stock, category);
+        product.setImageUrl(imageUrl);
+        product.setItemCondition(itemCondition);
+        return productRepository.save(product);
+    }
+
+    /** Update including picture and condition. */
     public Products update(Long id, String name, String brand, String description,
-                          BigDecimal price, int stock, String category) {
+                           BigDecimal price, int stock, String category,
+                           String imageUrl, String itemCondition) {
+        Products product = update(id, name, brand, description, price, stock, category);
+        product.setImageUrl(imageUrl);
+        product.setItemCondition(itemCondition);
+        return productRepository.save(product);
+    }
+
+    public Products update(Long id, String name, String brand, String description,
+                           BigDecimal price, int stock, String category) {
         Products product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
         product.setName(name);
