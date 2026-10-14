@@ -38,6 +38,14 @@ public class CustomerController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** GET /api/customers/by-email?email=... — used by checkout to reuse an existing customer */
+    @GetMapping("/by-email")
+    public ResponseEntity<Customer> getByEmail(@RequestParam String email) {
+        return customerService.findByEmail(email.trim())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
         try {
