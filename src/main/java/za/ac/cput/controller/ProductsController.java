@@ -61,7 +61,9 @@ public class ProductsController {
                     body.getOrDefault("description", "").toString(),
                     new BigDecimal(body.get("price").toString()),
                     Integer.parseInt(body.get("stockQuantity").toString()),
-                    body.getOrDefault("category", "General").toString()
+                    body.getOrDefault("category", "General").toString(),
+                    str(body.get("imageUrl")),
+                    str(body.get("itemCondition"))
             );
             return ResponseEntity.status(HttpStatus.CREATED).body(product);
         } catch (Exception e) {
@@ -81,7 +83,9 @@ public class ProductsController {
                     body.getOrDefault("description", "").toString(),
                     new BigDecimal(body.get("price").toString()),
                     Integer.parseInt(body.get("stockQuantity").toString()),
-                    body.getOrDefault("category", "General").toString()
+                    body.getOrDefault("category", "General").toString(),
+                    str(body.get("imageUrl")),
+                    str(body.get("itemCondition"))
             );
             return ResponseEntity.ok(product);
         } catch (Exception e) {
@@ -95,5 +99,8 @@ public class ProductsController {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }
-}
 
+    private static String str(Object o) {
+        return o == null ? null : o.toString();
+    }
+}
