@@ -1,82 +1,68 @@
-import { createContext, useContext, useEffect, useReducer } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import {
+    getCart,
+    addCartItem,
+    updateCartItem,
+    removeCartItem,
+    clearCartItems,
+} from '../services/api';
 
 const CartContext = createContext(null);
 
-const initialState = {
-  items: JSON.parse(localStorage.getItem('techvault_cart') || '[]'),
-};
-
-function cartReducer(state, action) {
-  switch (action.type) {
-    case 'ADD': {
-      const existing = state.items.find(i => i.product.id === action.product.id);
-      let items;
-      if (existing) {
-        items = state.items.map(i =>
-          i.product.id === action.product.id
-            ? { ...i, quantity: Math.min(i.quantity + (action.quantity || 1), i.product.stockQuantity) }
-            : i
-        );
-      } else {
-        items = [...state.items, { product: action.product, quantity: action.quantity || 1 }];
-      }
-      return { ...state, items };
+// Each browser gets a random cart id. The cart itself is stored in the database.
+function getCartId() {
+    let id = localStorage.getItem('techvault_cart_id');
+    if (!id) {
+        id = crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        localStorage.setItem('techvault_cart_id', id);
     }
-    case 'REMOVE':
-      return { ...state, items: state.items.filter(i => i.product.id !== action.productId) };
-    case 'UPDATE_QTY':
-      return {
-        ...state,
-        items: state.items.map(i =>
-          i.product.id === action.productId
-            ? { ...i, quantity: Math.max(1, Math.min(action.quantity, i.product.stockQuantity)) }
-            : i
-        ),
-      };
-    case 'CLEAR':
-      return { ...state, items: [] };
-    default:
-      return state;
-  }
+    return id;
 }
 
+// Backend returns [{ id, quantity, product }] -> page code uses [{ product, quantity }]
+const toItems = (rows) =>
+    (Array.isArray(rows) ? rows : []).map((r) => ({ product: r.product, quantity: r.quantity }));
+
 export function CartProvider({ children }) {
-  const [state, dispatch] = useReducer(cartReducer, initialState);
+    const [cartId] = useState(getCartId);
+    const [items, setItems] = useState([]);
 
-  useEffect(() => {
-    localStorage.setItem('nexora_cart', JSON.stringify(state.items));
-  }, [state.items]);
+    // Load the cart from the database when the site opens
+    useEffect(() => {
+        getCart(cartId)
+            .then((rows) => setItems(toItems(rows)))
+            .catch((err) => console.error('Could not load cart', err));
+    }, [cartId]);
 
-  const addToCart = (product, quantity = 1) => dispatch({ type: 'ADD', product, quantity });
-  const removeFromCart = (productId) => dispatch({ type: 'REMOVE', productId });
-  const updateQuantity = (productId, quantity) => dispatch({ type: 'UPDATE_QTY', productId, quantity });
-  const clearCart = () => dispatch({ type: 'CLEAR' });
+    const run = (request) =>
+        request
+            .then((rows) => setItems(toItems(rows)))
+            .catch((err) => {
+                console.error(err);
+                alert(err.response?.data?.error || 'Could not update the cart');
+            });
 
-  const totalItems = state.items.reduce((sum, i) => sum + i.quantity, 0);
-  const subtotal = state.items.reduce(
-    (sum, i) => sum + Number(i.product.price) * i.quantity,
-    0
-  );
+    const addToCart = (product, quantity = 1) => run(addCartItem(cartId, product.id, quantity));
+    const removeFromCart = (productId) => run(removeCartItem(cartId, productId));
+    const updateQuantity = (productId, quantity) => run(updateCartItem(cartId, productId, quantity));
+    const clearCart = () => run(clearCartItems(cartId));
 
-  return (
-    <CartContext.Provider
-      value={{
-        items: state.items,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        totalItems,
-        subtotal,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
+    const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+    const subtotal = items.reduce((sum, i) => sum + Number(i.product.price) * i.quantity, 0);
+
+    return (
+        <CartContext.Provider
+            value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, subtotal }}
+        >
+            {children}
+        </CartContext.Provider>
+    );
 }
 
 export function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error('useCart must be used within CartProvider');
-  return ctx;
+    const ctx = useContext(CartContext);
+    if (!ctx) throw new Error('useCart must be used within CartProvider');
+    return ctx;
 }

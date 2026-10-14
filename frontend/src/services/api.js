@@ -15,6 +15,22 @@ export const getProduct = (id) =>
 export const getInStockProducts = () =>
     api.get('/api/products/in-stock').then(r => r.data);
 
+// ── Cart (stored in the database, identified by a browser cartId) ─
+export const getCart = (cartId) =>
+    api.get(`/shopping-cart/${cartId}`).then(r => r.data);
+
+export const addCartItem = (cartId, productId, quantity) =>
+    api.post(`/shopping-cart/${cartId}/items`, { productId, quantity }).then(r => r.data);
+
+export const updateCartItem = (cartId, productId, quantity) =>
+    api.put(`/shopping-cart/${cartId}/items/${productId}`, { quantity }).then(r => r.data);
+
+export const removeCartItem = (cartId, productId) =>
+    api.delete(`/shopping-cart/${cartId}/items/${productId}`).then(r => r.data);
+
+export const clearCartItems = (cartId) =>
+    api.delete(`/shopping-cart/${cartId}`).then(r => r.data);
+
 // ── Customers ─────────────────────────────────────────────────
 export const registerCustomer = (data) =>
     api.post('/api/customers', data).then(r => r.data);
