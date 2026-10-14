@@ -8,6 +8,7 @@ const categoryColors = {
     Mouse: 'bg-emerald-100 text-emerald-700',
     Keyboard: 'bg-amber-100 text-amber-700',
     Monitor: 'bg-rose-100 text-rose-700',
+    Desktop: 'bg-indigo-100 text-indigo-700',
     Accessory: 'bg-cyan-100 text-cyan-700',
     General: 'bg-slate-100 text-slate-700',
 };
@@ -41,10 +42,11 @@ function formatPrice(price) {
 export default function ProductCard({ product }) {
     const { addToCart } = useCart();
     const [added, setAdded] = useState(false);
-    const [imgError, setImgError] = useState(false);
     const inStock = product.stockQuantity > 0;
     const badgeClass = categoryColors[product.category] || categoryColors.General;
     const icon = productIcons[product.category] || productIcons.default;
+    const [imgFailed, setImgFailed] = useState(false);
+    const showImage = product.imageUrl && !imgFailed;
 
     const handleAdd = (e) => {
         e.preventDefault();
@@ -60,31 +62,35 @@ export default function ProductCard({ product }) {
             to={`/products/${product.id}`}
             className="card group flex flex-col overflow-hidden animate-fade-in"
         >
-            {/* Image / icon area - FIXED */}
+            {/* Image / icon area */}
             <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-brand-50 to-slate-100 overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(92,124,250,0.12),transparent_60%)]" />
-
-                <div className="relative transition-transform duration-300 group-hover:scale-110 w-full h-full flex items-center justify-center p-3">
-                    {product.image &&!imgError? (
-                        <img
-                            src={product.image}
-                            alt={product.name}
-                            className="max-h-full max-w-full object-contain drop-shadow-sm"
-                            onError={() => setImgError(true)}
-                        />
-                    ) : (
-                        icon
-                    )}
-                </div>
-
+                {showImage ? (
+                    <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        onError={() => setImgFailed(true)}
+                        className="relative h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-105"
+                    />
+                ) : (
+                    <div className="relative transition-transform duration-300 group-hover:scale-110">
+                        {icon}
+                    </div>
+                )}
                 <span className={`badge absolute left-3 top-3 ${badgeClass}`}>
           {product.category || 'General'}
         </span>
-                {!inStock && (
+                {!inStock ? (
                     <span className="badge absolute right-3 top-3 bg-red-100 text-red-700">
             Out of stock
           </span>
-                )}
+                ) : product.itemCondition ? (
+                    <span className={`badge absolute right-3 top-3 ${
+                        product.itemCondition === 'New' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                    }`}>
+            {product.itemCondition}
+          </span>
+                ) : null}
             </div>
 
             {/* Content */}
@@ -121,7 +127,7 @@ export default function ProductCard({ product }) {
                                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                         }`}
                     >
-                        {added? 'Added ✓' : 'Add'}
+                        {added ? 'Added ✓' : 'Add'}
                     </button>
                 </div>
             </div>
