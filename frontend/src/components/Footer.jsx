@@ -43,6 +43,7 @@ export default function Footer() {
                     <div>
                         <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white">Account</h4>
                         <ul className="space-y-2 text-sm">
+                            <li><Link to="/admin" className="hover:text-accent-400 transition">Admin</Link></li>
                             <li><Link to="/orders" className="hover:text-accent-400 transition">My Orders</Link></li>
                             <li><Link to="/cart" className="hover:text-accent-400 transition">Cart</Link></li>
                         </ul>
@@ -51,7 +52,7 @@ export default function Footer() {
 
                 <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-slate-700 pt-8 sm:flex-row">
                     <p className="text-xs text-slate-500">
-                        © {new Date().getFullYear()} TechVault  · Cape Peninsula University of Technology
+                        © {new Date().getFullYear()} TechVault  · ADP372S
                     </p>
                     <div className="flex gap-4 text-xs text-slate-500">
                         <span>Secure Checkout</span>

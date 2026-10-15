@@ -5,11 +5,19 @@ package za.ac.cput.controller;
 
 import za.ac.cput.domain.Products;
 import za.ac.cput.service.ProductsService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 import java.util.List;
 import java.util.Map;
 
@@ -95,9 +103,42 @@ public class ProductsController {
 
     /** DELETE /api/products/{id} */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        productService.delete(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        try {
+            productService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (DataIntegrityViolationException e) {
+            // the product is part of an existing order
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error",
+                    "This product is part of existing orders and cannot be deleted. Set its stock to 0 instead."));
+        }
+    }
+
+    /** POST /api/products/upload — saves a product picture and returns its URL */
+    @PostMapping("/upload")
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No file selected"));
+            }
+            String type = file.getContentType();
+            if (type == null || !type.startsWith("image/")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Only image files are allowed"));
+            }
+            String original = file.getOriginalFilename() == null ? "" : file.getOriginalFilename();
+            String ext = original.contains(".")
+                    ? original.substring(original.lastIndexOf('.')).toLowerCase() : ".jpg";
+            if (!ext.matches("\\.(jpg|jpeg|png|webp|gif)")) ext = ".jpg";
+
+            Path dir = Paths.get("uploads", "products");
+            Files.createDirectories(dir);
+            String fileName = UUID.randomUUID() + ext;
+            Files.copy(file.getInputStream(), dir.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+
+            return ResponseEntity.ok(Map.of("imageUrl", "/uploads/products/" + fileName));
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Could not save the image"));
+        }
     }
 
     private static String str(Object o) {

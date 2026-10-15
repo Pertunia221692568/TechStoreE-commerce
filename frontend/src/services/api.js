@@ -15,6 +15,24 @@ export const getProduct = (id) =>
 export const getInStockProducts = () =>
     api.get('/api/products/in-stock').then(r => r.data);
 
+// ── Products: admin (create / update / delete / picture upload) ──
+export const createProduct = (data) =>
+    api.post('/api/products', data).then(r => r.data);
+
+export const updateProduct = (id, data) =>
+    api.put(`/api/products/${id}`, data).then(r => r.data);
+
+export const deleteProduct = (id) =>
+    api.delete(`/api/products/${id}`).then(r => r.data);
+
+export const uploadProductImage = (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api
+        .post('/api/products/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .then(r => r.data);
+};
+
 // ── Cart (stored in the database, identified by a browser cartId) ─
 export const getCart = (cartId) =>
     api.get(`/shopping-cart/${cartId}`).then(r => r.data);
