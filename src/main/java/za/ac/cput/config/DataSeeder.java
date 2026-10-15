@@ -1,6 +1,7 @@
 package za.ac.cput.config;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import za.ac.cput.repository.IProductsRepository;
@@ -11,8 +12,10 @@ import java.math.BigDecimal;
 /**
  * Adds starter products to the database the first time the backend runs
  * (only when the products table is empty).
+ * Pictures live in: frontend/public/images/products/
  */
 @Configuration
+@ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true", matchIfMissing = true)
 public class DataSeeder {
 
     @Bean
@@ -44,4 +47,3 @@ public class DataSeeder {
                 "/images/products/" + image, condition);
     }
 }
-
