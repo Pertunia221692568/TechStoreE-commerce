@@ -2,26 +2,36 @@ package za.ac.cput.factory;
 
 import org.junit.jupiter.api.Test;
 import za.ac.cput.domain.Rating;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class RatingFactoryTest {
 
     @Test
     void testCreateRating() {
-
-        Rating rating = RatingFactory.createRating(5, "Great service!");
-
+        Rating rating = RatingFactory.createRating(5, "Excellent product", 1L);
         assertNotNull(rating);
         assertEquals(5, rating.getScore());
-        assertEquals("Great service!", rating.getComment());
+        assertEquals("Excellent product", rating.getComment());
+        assertEquals(1L, rating.getProductId());
         assertNotNull(rating.getRatingDate());
     }
 
     @Test
-    void testCreateRatingFail() {
-        // Pass a null score to trigger the validation we added in Step1
-        Rating rating = RatingFactory.createRating(null, "Great service!");
+    void testCreateRatingFailMissingProduct() {
+        Rating rating = RatingFactory.createRating(4, "Good", null);
+        assertNull(rating);
+    }
 
-        assertNull(rating); // Expects null because validation failed
+    @Test
+    void testCreateRatingFailBadScore() {
+        Rating rating = RatingFactory.createRating(0, "Bad score", 1L);
+        assertNull(rating);
+    }
+
+    @Test
+    void testCreateRatingFailEmptyComment() {
+        Rating rating = RatingFactory.createRating(5, "  ", 1L);
+        assertNull(rating);
     }
 }

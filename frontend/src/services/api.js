@@ -60,7 +60,8 @@ export const getCustomer = (id) =>
 
 export const updateCustomer = (id, data) =>
     api.put(`/api/customers/${id}`, data).then(r => r.data);
-
+export const deleteCustomer = (id) =>
+    api.delete(`/api/customers/${id}`);
 // Orders
 export const placeOrder = (payload) =>
     api.post('/api/orders', payload).then(r => r.data);
@@ -86,6 +87,9 @@ export const createRating = (rating) =>
 
 export const getRatings = () =>
     api.get('/api/ratings').then(r => r.data);
+
+export const getRatingsByProduct = (productId) =>
+    api.get(`/api/ratings/product/${productId}`).then(r => r.data);
 
 // Shipping & payment
 export const createShippingAddress = (address) =>

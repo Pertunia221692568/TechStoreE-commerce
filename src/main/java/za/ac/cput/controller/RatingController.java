@@ -1,6 +1,7 @@
 package za.ac.cput.controller;
 
 import java.util.List;
+import java.util.Map;
 import za.ac.cput.domain.Rating;
 import za.ac.cput.service.RatingService;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,12 @@ public class RatingController {
     }
 
     @PostMapping
-    public ResponseEntity<Rating> create(@RequestBody Rating rating) {
-        return ResponseEntity.ok(service.create(rating));
+    public ResponseEntity<?> create(@RequestBody Rating rating) {
+        try {
+            return ResponseEntity.ok(service.create(rating));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}")
@@ -26,6 +31,12 @@ public class RatingController {
         return service.get(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** All ratings for one product */
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<List<Rating>> getByProduct(@PathVariable Long productId) {
+        return ResponseEntity.ok(service.getByProductId(productId));
     }
 
     @GetMapping

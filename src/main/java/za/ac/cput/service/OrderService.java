@@ -109,25 +109,32 @@ public class OrderService {
         order.setStatus(newStatus);
         Order saved = orderRepository.save(order);
 
-        // SHIPPED: create/update a delivery row with tracking (not yet delivered — no deliveryDate)
-        // DELIVERED: same row, set deliveryDate so the table shows it was actually delivered
+        // SHIPPED / DELIVERED → create or update a delivery row
         if (newStatus == Order.Status.SHIPPED || newStatus == Order.Status.DELIVERED) {
-            String deliveryId = "DEL-ORDER-" + orderId;
-            Delivery delivery = deliveryRepository.findById(deliveryId).orElseGet(() -> {
-                Delivery d = new Delivery();
-                d.setDeliveryId(deliveryId);
-                d.setTrackingNumber("TV-" + orderId + "-" + (System.currentTimeMillis() % 100000));
-                d.setCarrier("TechVault Courier");
-                return d;
-            });
+            String shippingId = "SHIP-TV-ORDER-" + orderId;
+
+            Delivery delivery = deliveryRepository.findByShippingId(shippingId)
+                    .orElseGet(() -> {
+                        Delivery d = new Delivery();
+                        d.setShippingId(shippingId);
+                        d.setTrackingNumber("TV-" + orderId + "-" + (System.currentTimeMillis() % 100000));
+                        d.setCarrier("TechVault Courier");
+                        d.setOrderId(orderId);
+                        d.setProductUnits(0);
+                        d.setStatus("PENDING");
+                        return d;
+                    });
 
             if (newStatus == Order.Status.SHIPPED) {
-                // Left warehouse — not delivered yet
-                delivery.setDeliveryDate(null);
+                delivery.setStatus("DISPATCHED");
+                delivery.setEstimatedDeliveryDate(java.time.LocalDateTime.now().plusDays(2));
+                delivery.setActualDeliveryDate(null);
             } else {
-                // DELIVERED — customer has received the package
-                delivery.setDeliveryDate(java.time.LocalDateTime.now());
+                // DELIVERED
+                delivery.setStatus("DELIVERED");
+                delivery.setActualDeliveryDate(java.time.LocalDateTime.now());
             }
+
             deliveryRepository.save(delivery);
         }
 

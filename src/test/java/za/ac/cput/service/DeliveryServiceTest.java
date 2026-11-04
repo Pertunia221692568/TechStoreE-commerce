@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import za.ac.cput.domain.Delivery;
 import za.ac.cput.repository.IDeliveryRepository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,7 +19,7 @@ import static org.mockito.Mockito.*;
 class DeliveryServiceTest {
 
     @Mock
-    private IDeliveryRepository deliveryRepository;
+    private IDeliveryRepository repository;
 
     @InjectMocks
     private DeliveryService deliveryService;
@@ -28,28 +29,45 @@ class DeliveryServiceTest {
     @BeforeEach
     void setUp() {
         delivery = new Delivery();
-        delivery.setDeliveryId("1");
+        delivery.setShippingId("SHIP-TV-001");
+        delivery.setTrackingNumber("TV-12345");
+        delivery.setCarrier("TechVault Courier");
+        delivery.setStatus("PENDING");
+        delivery.setProductUnits(2);
+        delivery.setOrderId(1L);
+        delivery.setEstimatedDeliveryDate(LocalDateTime.now().plusDays(2));
     }
 
     @Test
     void testSaveDelivery() {
-        when(deliveryRepository.save(any(Delivery.class))).thenReturn(delivery);
+        when(repository.save(any(Delivery.class))).thenReturn(delivery);
 
         Delivery saved = deliveryService.save(delivery);
 
         assertNotNull(saved);
-        assertEquals("1", saved.getDeliveryId());
-        verify(deliveryRepository, times(1)).save(delivery);
+        assertEquals("SHIP-TV-001", saved.getShippingId());
+        verify(repository, times(1)).save(delivery);
     }
 
     @Test
     void testFindDeliveryById() {
-        when(deliveryRepository.findById("1")).thenReturn(Optional.of(delivery));
+        when(repository.findById(1L)).thenReturn(Optional.of(delivery));
 
-        Optional<Delivery> found = deliveryService.findById("1");
+        Optional<Delivery> found = deliveryService.findById(1L);
 
         assertTrue(found.isPresent());
-        assertEquals("1", found.get().getDeliveryId());
-        verify(deliveryRepository, times(1)).findById("1");
+        assertEquals("SHIP-TV-001", found.get().getShippingId());
+        verify(repository, times(1)).findById(1L);
+    }
+
+    @Test
+    void testFindByShippingId() {
+        when(repository.findByShippingId("SHIP-TV-001")).thenReturn(Optional.of(delivery));
+
+        Optional<Delivery> found = deliveryService.findByShippingId("SHIP-TV-001");
+
+        assertTrue(found.isPresent());
+        assertEquals("TV-12345", found.get().getTrackingNumber());
+        verify(repository, times(1)).findByShippingId("SHIP-TV-001");
     }
 }

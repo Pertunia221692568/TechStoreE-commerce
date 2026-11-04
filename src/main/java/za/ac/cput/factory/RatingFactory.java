@@ -5,11 +5,16 @@ import za.ac.cput.domain.Rating;
 
 public class RatingFactory {
 
-    public static Rating createRating(Integer score, String comment) {
-
-        if (score == null || comment == null || comment.isEmpty()) {
+    public static Rating createRating(Integer score, String comment, Long productId) {
+        if (score == null || score < 1 || score > 5) {
             return null;
         }
-        return new Rating(score, comment, LocalDateTime.now());
+        if (comment == null || comment.isBlank()) {
+            return null;
+        }
+        if (productId == null) {
+            return null;
+        }
+        return new Rating(score, comment.trim(), LocalDateTime.now(), productId);
     }
 }

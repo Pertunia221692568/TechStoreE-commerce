@@ -11,6 +11,7 @@ import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
 import HelpCentre from './pages/HelpCentre';
 import ShippingInfo from './pages/ShippingInfo';
 import Returns from './pages/Returns';
@@ -32,6 +33,7 @@ export default function App() {
                                 <Route path="/checkout" element={<Checkout />} />
                                 <Route path="/orders" element={<Orders />} />
                                 <Route path="/login" element={<Login />} />
+                                <Route path="/profile" element={<Profile />} />
                                 <Route path="/admin" element={<Admin />} />
                                 <Route path="/help" element={<HelpCentre />} />
                                 <Route path="/shipping" element={<ShippingInfo />} />

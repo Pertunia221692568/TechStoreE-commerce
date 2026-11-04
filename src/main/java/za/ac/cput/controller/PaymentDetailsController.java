@@ -28,8 +28,12 @@ public class PaymentDetailsController {
         return service.update(payment);
     }
 
-    @DeleteMapping("/delete")
-    public boolean delete(@RequestBody PaymentDetails payment) {
-        return service.delete(payment);
+    @DeleteMapping("/delete/{id}")
+    public boolean delete(@PathVariable Long id) {
+        return service.delete(id);
     }
+
+
+
+
 }

@@ -28,8 +28,9 @@ public class DeliveryController {
         return service.update(delivery);
     }
 
-    @DeleteMapping("/delete")
-    public boolean delete(@RequestBody Delivery delivery) {
-        return service.delete(delivery);
+    @DeleteMapping("/delete/{id}")
+    public boolean delete(@PathVariable Long id) {
+        return service.delete(id);
     }
+
 }
