@@ -5,14 +5,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import za.ac.cput.repository.IProductsRepository;
+import za.ac.cput.repository.IUserRepository;
 import za.ac.cput.service.ProductsService;
+import za.ac.cput.service.UserService;
 
 import java.math.BigDecimal;
 
 /**
- * Adds starter products to the database the first time the backend runs
- * (only when the products table is empty).
- * Pictures live in: frontend/public/images/products/
+ * Seeds starter products and a default Admin user the first time the backend runs.
  */
 @Configuration
 @ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true", matchIfMissing = true)
@@ -23,7 +23,6 @@ public class DataSeeder {
         return args -> {
             if (repo.count() > 0) return;
 
-            // name, brand, description, price, stock, category, image, condition
             add(service, "Dell XPS 13", "Dell", "13.3\" laptop, Intel i7, 16GB RAM, 512GB SSD", "24999.00", 5, "Laptop", "dell-xps-13.jpg", "New");
             add(service, "HP Pavilion 15", "HP", "15.6\" laptop, Ryzen 5, 8GB RAM, 256GB SSD", "11999.00", 8, "Laptop", "hp-pavilion-15.jpg", "New");
             add(service, "Lenovo ThinkPad T480", "Lenovo", "Refurbished business laptop, i5, 8GB RAM, 256GB SSD", "5499.00", 4, "Laptop", "thinkpad-t480.jpg", "Second-hand");
@@ -38,6 +37,22 @@ public class DataSeeder {
             add(service, "LG 24\" Full HD Monitor", "LG", "24 inch IPS monitor, HDMI", "2299.00", 6, "Monitor", "lg-24-monitor.jpg", "New");
             add(service, "Samsung 27\" Curved Monitor", "Samsung", "27 inch curved monitor, 75Hz", "1999.00", 3, "Monitor", "samsung-27-curved.jpg", "Second-hand");
             add(service, "Sony WH-CH520 Headphones", "Sony", "Wireless on-ear headphones", "999.00", 12, "Accessory", "sony-wh-ch520.jpg", "New");
+        };
+    }
+
+    @Bean
+    CommandLineRunner seedAdminUser(IUserRepository userRepo, UserService userService) {
+        return args -> {
+            String adminEmail = "admin@techvault.co.za";
+            if (userRepo.existsByEmail(adminEmail)) return;
+
+            userService.createAdminUser(
+                    adminEmail,
+                    "TEMP_ADMIN_HASH",
+                    "TechVault",
+                    "Admin"
+            );
+            System.out.println("[DataSeeder] Default ADMIN user created: " + adminEmail);
         };
     }
 

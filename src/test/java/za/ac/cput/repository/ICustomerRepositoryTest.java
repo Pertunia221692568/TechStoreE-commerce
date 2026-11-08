@@ -1,10 +1,13 @@
 /* ICustomerRepositoryTest.java
  * Author: Pertunia Sifunda (221692568)
+ * Updated for User composition.
  */
 package za.ac.cput.repository;
 
 import za.ac.cput.domain.Customer;
+import za.ac.cput.domain.User;
 import za.ac.cput.factory.CustomerFactory;
+import za.ac.cput.factory.UserFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,15 +24,28 @@ class ICustomerRepositoryTest {
     @Autowired
     private ICustomerRepository customerRepository;
 
+    @Autowired
+    private IUserRepository userRepository;
+
     private Customer savedCustomer;
+    private String testEmail;
 
     @BeforeEach
     void setUp() {
-        // Use unique email each run to avoid constraint violations
-        Customer customer = CustomerFactory.create(
-                "Pertunia", "Sifunda",
-                "pertunia" + System.currentTimeMillis() + "@test.co.za",
-                "071 000 1111", "10 Long Street, Cape Town");
+        testEmail = "pertunia" + System.currentTimeMillis() + "@test.co.za";
+
+        // 1. Create and save User first
+        User user = UserFactory.createCustomerUser(
+                testEmail,
+                "TEMP_HASH",
+                "Pertunia",
+                "Sifunda",
+                "071 000 1111"
+        );
+        user = userRepository.save(user);
+
+        // 2. Create Customer linked to that User
+        Customer customer = CustomerFactory.create(user, "10 Long Street, Cape Town");
         savedCustomer = customerRepository.save(customer);
     }
 
@@ -39,29 +55,28 @@ class ICustomerRepositoryTest {
         Optional<Customer> found = customerRepository.findById(savedCustomer.getId());
 
         assertTrue(found.isPresent());
-        assertEquals(savedCustomer.getEmail(), found.get().getEmail());
+        assertEquals(testEmail, found.get().getEmail());
         assertEquals("Pertunia", found.get().getFirstName());
     }
 
     @Test
-    @DisplayName("Should find Customer by email")
-    void shouldFindByEmail() {
-        Optional<Customer> found = customerRepository.findByEmail(savedCustomer.getEmail());
+    @DisplayName("Should find Customer by email (via User)")
+    void shouldFindByUserEmail() {
+        Optional<Customer> found = customerRepository.findByUser_Email(testEmail);
 
         assertTrue(found.isPresent());
         assertEquals(savedCustomer.getId(), found.get().getId());
     }
 
     @Test
-    @DisplayName("existsByEmail should return true for existing email")
-    void existsByEmail_shouldReturnTrue() {
-        assertTrue(customerRepository.existsByEmail(savedCustomer.getEmail()));
+    @DisplayName("existsByUser_Email should return true for existing email")
+    void existsByUserEmail_shouldReturnTrue() {
+        assertTrue(customerRepository.existsByUser_Email(testEmail));
     }
 
     @Test
-    @DisplayName("existsByEmail should return false for unknown email")
-    void existsByEmail_shouldReturnFalse() {
-        assertFalse(customerRepository.existsByEmail("doesnotexist@test.com"));
+    @DisplayName("existsByUser_Email should return false for unknown email")
+    void existsByUserEmail_shouldReturnFalse() {
+        assertFalse(customerRepository.existsByUser_Email("doesnotexist@test.com"));
     }
 }
-

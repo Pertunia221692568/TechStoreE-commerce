@@ -6,12 +6,16 @@ import za.ac.cput.repository.IDeliveryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class DeliveryService {
+
+    /** Maximum product units that can be confirmed for dispatch on a single day */
+    public static final int DAILY_CAPACITY = 50;
 
     @Autowired
     private IDeliveryRepository repository;
@@ -59,4 +63,20 @@ public class DeliveryService {
         }
         return false;
     }
+
+    public int getConfirmedUnitsForDay(LocalDate day) {
+        return repository.sumConfirmedUnitsForDay(day);
+    }
+
+    public int getRemainingCapacity(LocalDate day) {
+        return Math.max(0, DAILY_CAPACITY - getConfirmedUnitsForDay(day));
+    }
+
+    public CapacityInfo getTodayCapacity() {
+        LocalDate today = LocalDate.now();
+        int used = getConfirmedUnitsForDay(today);
+        return new CapacityInfo(DAILY_CAPACITY, used, Math.max(0, DAILY_CAPACITY - used));
+    }
+
+    public record CapacityInfo(int dailyLimit, int used, int remaining) {}
 }

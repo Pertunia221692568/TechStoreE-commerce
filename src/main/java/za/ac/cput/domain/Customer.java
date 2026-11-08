@@ -1,6 +1,9 @@
 /* Customer class
  * TechStoreE-commerce – ADP372S
  * Author: Pertunia Sifunda (221692568)
+ *
+ * Customer is linked to a User (composition).
+ * Shared identity fields live on User; Customer holds customer-specific data.
  */
 package za.ac.cput.domain;
 
@@ -9,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-
 
 @Entity
 @Table(name = "customers")
@@ -20,16 +22,15 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String firstName;
+    /**
+     * Link to the common User identity.
+     * One User can have at most one Customer profile.
+     */
+    @OneToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
-    @Column(nullable = false)
-    private String lastName;
-
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    private String phone;
+    /** Customer-specific address (shipping / billing default) */
     private String address;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -39,58 +40,46 @@ public class Customer {
     protected Customer() {}
 
     private Customer(Builder builder) {
-        this.firstName = builder.firstName;
-        this.lastName  = builder.lastName;
-        this.email     = builder.email;
-        this.phone     = builder.phone;
-        this.address   = builder.address;
+        this.user    = builder.user;
+        this.address = builder.address;
     }
 
     // ── Getters ───────────────────────────────────────────────
     public Long getId()            { return id; }
-    public String getFirstName()   { return firstName; }
-    public String getLastName()    { return lastName; }
-    public String getEmail()       { return email; }
-    public String getPhone()       { return phone; }
+    public User getUser()          { return user; }
     public String getAddress()     { return address; }
     @JsonIgnore
     public List<Order> getOrders() { return orders; }
-    public String getFullName()    { return firstName + " " + lastName; }
+
+    // Convenience getters that delegate to User (so existing frontend code still works)
+    public String getFirstName()   { return user != null ? user.getFirstName() : null; }
+    public String getLastName()    { return user != null ? user.getLastName()  : null; }
+    public String getEmail()       { return user != null ? user.getEmail()     : null; }
+    public String getPhone()       { return user != null ? user.getPhone()     : null; }
+    public String getFullName()    { return user != null ? user.getFullName()  : null; }
 
     // ── Setters ───────────────────────────────────────────────
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public void setLastName(String lastName)   { this.lastName = lastName; }
-    public void setEmail(String email)         { this.email = email; }
-    public void setPhone(String phone)         { this.phone = phone; }
-    public void setAddress(String address)     { this.address = address; }
+    public void setUser(User user)         { this.user = user; }
+    public void setAddress(String address) { this.address = address; }
 
     @Override
     public String toString() {
-        return "Customer{id=" + id + ", name='" + firstName + " " + lastName +
-                "', email='" + email + "'}";
+        return "Customer{id=" + id +
+                ", user=" + (user != null ? user.getEmail() : "null") +
+                ", address='" + address + "'}";
     }
 
     // ── Builder ───────────────────────────────────────────────
     public static class Builder {
-        private String firstName;
-        private String lastName;
-        private String email;
-        private String phone;
+        private User user;
         private String address;
 
-        public Builder firstName(String v) { this.firstName = v; return this; }
-        public Builder lastName(String v)  { this.lastName = v; return this; }
-        public Builder email(String v)     { this.email = v; return this; }
-        public Builder phone(String v)     { this.phone = v; return this; }
-        public Builder address(String v)   { this.address = v; return this; }
+        public Builder user(User v)      { this.user = v; return this; }
+        public Builder address(String v) { this.address = v; return this; }
 
         public Customer build() {
-            if (firstName == null || firstName.isBlank())
-                throw new IllegalStateException("First name is required");
-            if (lastName == null || lastName.isBlank())
-                throw new IllegalStateException("Last name is required");
-            if (email == null || email.isBlank())
-                throw new IllegalStateException("Email is required");
+            if (user == null)
+                throw new IllegalStateException("User is required for a Customer");
             return new Customer(this);
         }
     }
