@@ -117,10 +117,10 @@ export const getOrder = (id) =>
     api.get(`/api/orders/${id}`).then((r) => r.data);
 
 export const cancelOrder = (id) =>
-    api.put(`/api/orders/${id}/cancel`).then((r) => r.data);
+    api.post(`/api/orders/${id}/cancel`).then((r) => r.data);
 
 export const updateOrderStatus = (id, status) =>
-    api.put(`/api/orders/${id}/status`, { status }).then((r) => r.data);
+    api.patch(`/api/orders/${id}/status`, { status }).then((r) => r.data);
 
 // ── Ratings ──────────────────────────────────────────────────
 export const createRating = (data) =>
@@ -137,7 +137,7 @@ export const createShippingAddress = (data) =>
     api.post('/api/shipping-addresses', data).then((r) => r.data);
 
 export const createPaymentDetails = (data) =>
-    api.post('/api/payment-details', data).then((r) => r.data);
+    api.post('/payment-details/create', data).then((r) => r.data);
 
 // ── Legacy (still used by some pages) ────────────────────────
 export const createRegistration = (data) =>

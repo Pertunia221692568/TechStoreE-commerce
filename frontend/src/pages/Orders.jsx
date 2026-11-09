@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getOrdersByCustomer, cancelOrder, getCustomerByEmail } from '../services/api';
+import { getOrdersByCustomer, cancelOrder } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 function formatPrice(price) {
@@ -25,16 +25,14 @@ const statusStyles = {
 };
 
 export default function Orders() {
-    const { user, login } = useAuth();
-    const [lookupEmail, setLookupEmail] = useState('');
-    const [lookupError, setLookupError] = useState('');
+    const { user } = useAuth();
     const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(!!user?.id);
+    const [loading, setLoading] = useState(!!user?.customerId);
 
     const load = () => {
-        if (!user?.id) return;
+        if (!user?.customerId) return;
         setLoading(true);
-        getOrdersByCustomer(user.id)
+        getOrdersByCustomer(user.customerId)
             .then((data) => setOrders(Array.isArray(data) ? data : []))
             .catch(() => setOrders([]))
             .finally(() => setLoading(false));
@@ -42,7 +40,7 @@ export default function Orders() {
 
     useEffect(() => {
         load();
-    }, [user?.id]);
+    }, [user?.customerId]);
 
     const handleCancel = async (id) => {
         if (!window.confirm('Cancel this order?')) return;
@@ -54,34 +52,14 @@ export default function Orders() {
         }
     };
 
-    const handleLookup = async (e) => {
-        e.preventDefault();
-        setLookupError('');
-        try {
-            const customer = await getCustomerByEmail(lookupEmail);
-            login(customer);
-        } catch {
-            setLookupError('No orders found for that email.');
-        }
-    };
-
-    if (!user?.id) {
+    if (!user?.customerId) {
         return (
             <div className="mx-auto max-w-md px-4 py-20 text-center">
-                <p className="text-slate-500">Enter the email you used at checkout to see your orders.</p>
-                <form onSubmit={handleLookup} className="mt-4 space-y-3">
-                    <input
-                        type="email"
-                        value={lookupEmail}
-                        onChange={(e) => setLookupEmail(e.target.value)}
-                        placeholder="Email"
-                        className="input-field"
-                        required
-                    />
-                    {lookupError && <p className="text-sm text-red-600">{lookupError}</p>}
-                    <button type="submit" className="btn-primary w-full">Find my orders</button>
-                </form>
-                <Link to="/products" className="mt-4 inline-block text-sm text-brand-600">Continue shopping</Link>
+                <p className="text-slate-500">Please log in to see your orders.</p>
+                <Link to="/login" className="btn-primary mt-4 inline-flex">Log in</Link>
+                <div>
+                    <Link to="/products" className="mt-4 inline-block text-sm text-brand-600">Continue shopping</Link>
+                </div>
             </div>
         );
     }

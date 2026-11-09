@@ -8,7 +8,7 @@ import {
 } from '../services/api';
 
 export default function Profile() {
-    const { user, login, logout, isAuthenticated } = useAuth();
+    const { user, logout, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
     const [form, setForm] = useState({
@@ -24,12 +24,12 @@ export default function Profile() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (!isAuthenticated || !user?.id) {
+        if (!isAuthenticated || !user?.customerId) {
             navigate('/login');
             return;
         }
 
-        getCustomer(user.id)
+        getCustomer(user.customerId)
             .then((c) => {
                 setForm({
                     firstName: c.firstName || '',
@@ -60,8 +60,7 @@ export default function Profile() {
         setMessage('');
         setError('');
         try {
-            const updated = await updateCustomer(user.id, form);
-            login(updated);
+            await updateCustomer(user.customerId, form);
             setMessage('Profile updated successfully.');
         } catch (err) {
             setError(err.response?.data?.error || err.message || 'Update failed');
@@ -75,7 +74,7 @@ export default function Profile() {
             return;
         }
         try {
-            await deleteCustomer(user.id);
+            await deleteCustomer(user.customerId);
             logout();
             navigate('/');
         } catch {

@@ -17,6 +17,7 @@ public class PaymentDetailsService {
     private IPaymentDetailsRepository repository;
 
     public PaymentDetails save(PaymentDetails payment) {
+        if (payment.getPaidAt() == null) payment.setPaidAt(java.time.LocalDateTime.now());
         return repository.save(payment);
     }
 

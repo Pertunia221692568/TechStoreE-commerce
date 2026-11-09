@@ -33,8 +33,8 @@ export default function Login() {
         setError('');
 
         try {
-            await login(form.email.trim(), form.password);
-            navigate('/');
+            const data = await login(form.email.trim(), form.password);
+            navigate(data.role === 'ADMIN' ? '/admin' : '/');
         } catch (err) {
             const msg =
                 err.response?.data?.error ||

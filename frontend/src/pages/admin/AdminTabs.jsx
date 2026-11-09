@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
     getProducts,
     createProduct,
@@ -8,11 +7,7 @@ import {
     uploadProductImage,
     getOrders,
     updateOrderStatus,
-} from '../services/api';
-
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'admin123';
-const ADMIN_SESSION_KEY = 'techvault_admin';
+} from '../../services/api';
 
 const CATEGORIES = ['Laptop', 'Desktop', 'Phone', 'Monitor', 'Keyboard', 'Mouse', 'Accessory'];
 const CONDITIONS = ['New', 'Second-hand'];
@@ -46,131 +41,7 @@ const statusStyles = {
     CANCELLED: 'bg-red-100 text-red-800',
 };
 
-function AdminLogin({ onSuccess }) {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (username === ADMIN_USER && password === ADMIN_PASS) {
-            sessionStorage.setItem(ADMIN_SESSION_KEY, 'yes');
-            window.dispatchEvent(new Event('techvault-admin-change'));
-            onSuccess();
-        } else {
-            setError('Wrong username or password.');
-        }
-    };
-
-    return (
-        <div className="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center px-4 py-12">
-            <div className="card p-8">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Staff only</p>
-                <h1 className="mt-1 font-display text-2xl font-bold text-slate-900">Admin sign in</h1>
-                <p className="mt-2 text-sm text-slate-500">Manage products and orders.</p>
-                <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-                    <input
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Username"
-                        className="input-field"
-                        autoComplete="username"
-                        required
-                    />
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password"
-                        className="input-field"
-                        autoComplete="current-password"
-                        required
-                    />
-                    {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-                    <button type="submit" className="btn-primary w-full">Sign in as admin</button>
-                </form>
-                <Link to="/" className="mt-4 block text-center text-sm text-brand-600 hover:underline">
-                    ← Back to store
-                </Link>
-            </div>
-        </div>
-    );
-}
-
-function AdminPanel({ onLogout }) {
-    const [tab, setTab] = useState('products'); // products | orders
-    const [message, setMessage] = useState(null);
-
-    const showMessage = (type, text) => {
-        setMessage({ type, text });
-        if (type === 'ok') {
-            window.setTimeout(() => setMessage((m) => (m?.text === text ? null : m)), 3500);
-        }
-    };
-
-    return (
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 animate-fade-in">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Admin panel</p>
-                    <h1 className="font-display text-2xl font-bold text-slate-900 sm:text-3xl">Manage store</h1>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    <Link to="/products" className="btn-secondary !px-4 !py-2 text-sm">View shop</Link>
-                    <button
-                        type="button"
-                        onClick={onLogout}
-                        className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-                    >
-                        Sign out of admin
-                    </button>
-                </div>
-            </div>
-
-            <div className="mb-6 flex gap-2 border-b border-slate-200">
-                <button
-                    type="button"
-                    onClick={() => setTab('products')}
-                    className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px ${
-                        tab === 'products' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500'
-                    }`}
-                >
-                    Products
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setTab('orders')}
-                    className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px ${
-                        tab === 'orders' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500'
-                    }`}
-                >
-                    Orders
-                </button>
-            </div>
-
-            {message && (
-                <div
-                    role="status"
-                    className={`mb-4 rounded-xl border px-4 py-3 text-sm font-medium ${
-                        message.type === 'ok'
-                            ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                            : 'border-red-200 bg-red-50 text-red-800'
-                    }`}
-                >
-                    {message.text}
-                </div>
-            )}
-
-            {tab === 'products' ? (
-                <ProductsTab showMessage={showMessage} />
-            ) : (
-                <OrdersTab showMessage={showMessage} />
-            )}
-        </div>
-    );
-}
-
-function ProductsTab({ showMessage }) {
+export function ProductsTab({ showMessage }) {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [form, setForm] = useState(emptyForm);
@@ -360,7 +231,7 @@ function ProductsTab({ showMessage }) {
     );
 }
 
-function OrdersTab({ showMessage }) {
+export function OrdersTab({ showMessage }) {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState(null);
@@ -447,14 +318,3 @@ function OrdersTab({ showMessage }) {
     );
 }
 
-export default function Admin() {
-    const [isAdmin, setIsAdmin] = useState(() => sessionStorage.getItem(ADMIN_SESSION_KEY) === 'yes');
-
-    const logout = () => {
-        sessionStorage.removeItem(ADMIN_SESSION_KEY);
-        window.dispatchEvent(new Event('techvault-admin-change'));
-        setIsAdmin(false);
-    };
-
-    return isAdmin ? <AdminPanel onLogout={logout} /> : <AdminLogin onSuccess={() => setIsAdmin(true)} />;
-}

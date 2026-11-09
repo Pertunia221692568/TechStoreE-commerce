@@ -4,37 +4,16 @@ import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
 import Logo from './Logo';
 
-const ADMIN_KEY = 'techvault_admin';
-
-function readIsAdmin() {
-    try {
-        return sessionStorage.getItem(ADMIN_KEY) === 'yes';
-    } catch {
-        return false;
-    }
-}
-
 export default function Navbar() {
     const { totalItems } = useCart();
     const { user, logout, isAuthenticated } = useAuth();
     const [search, setSearch] = useState('');
     const [mobileOpen, setMobileOpen] = useState(false);
     const [accountOpen, setAccountOpen] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(readIsAdmin);
+    const isAdmin = user?.role === 'ADMIN';
     const navigate = useNavigate();
     const location = useLocation();
     const accountRef = useRef(null);
-
-    useEffect(() => {
-        const sync = () => setIsAdmin(readIsAdmin());
-        sync();
-        window.addEventListener('techvault-admin-change', sync);
-        window.addEventListener('storage', sync);
-        return () => {
-            window.removeEventListener('techvault-admin-change', sync);
-            window.removeEventListener('storage', sync);
-        };
-    }, [location.pathname]);
 
     useEffect(() => {
         setMobileOpen(false);
@@ -73,14 +52,6 @@ export default function Navbar() {
         setAccountOpen(false);
         setMobileOpen(false);
         navigate('/');
-    };
-
-    const handleAdminSignOut = () => {
-        sessionStorage.removeItem(ADMIN_KEY);
-        setIsAdmin(false);
-        window.dispatchEvent(new Event('techvault-admin-change'));
-        navigate('/admin');
-        setMobileOpen(false);
     };
 
     const linkClass = ({ isActive }) =>
@@ -154,18 +125,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-2 sm:gap-3">
                     {/* Account – Takealot style */}
                     <div className="relative hidden sm:block" ref={accountRef}>
-                        {isAdmin ? (
-                            <button
-                                type="button"
-                                onClick={handleAdminSignOut}
-                                className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-brand-300 hover:bg-slate-50"
-                            >
-                                <svg className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                <span>Admin · Sign out</span>
-                            </button>
-                        ) : isAuthenticated ? (
+                        {isAuthenticated ? (
                             <>
                                 <button
                                     type="button"
@@ -192,6 +152,15 @@ export default function Navbar() {
                                             </p>
                                             <p className="truncate text-xs text-slate-500">{user?.email}</p>
                                         </div>
+                                        {isAdmin && (
+                                            <Link
+                                                to="/admin"
+                                                onClick={() => setAccountOpen(false)}
+                                                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-brand-600 hover:bg-slate-50"
+                                            >
+                                                Admin dashboard
+                                            </Link>
+                                        )}
                                         <Link
                                             to="/profile"
                                             onClick={() => setAccountOpen(false)}
@@ -296,18 +265,12 @@ export default function Navbar() {
 
                         <div className="my-2 border-t border-slate-100" />
 
-                        {isAdmin ? (
-                            <>
-                                <NavLink to="/admin" className={linkClass}>Admin</NavLink>
-                                <button type="button" onClick={handleAdminSignOut} className="py-2 text-left text-sm font-medium text-slate-600">
-                                    Admin · Sign out
-                                </button>
-                            </>
-                        ) : isAuthenticated ? (
+                        {isAuthenticated ? (
                             <>
                                 <p className="px-0 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
                                     {user?.firstName || 'Account'}
                                 </p>
+                                {isAdmin && <NavLink to="/admin" className={linkClass}>Admin dashboard</NavLink>}
                                 <NavLink to="/profile" className={linkClass}>Manage profile</NavLink>
                                 <NavLink to="/orders" className={linkClass}>My orders</NavLink>
                                 <button

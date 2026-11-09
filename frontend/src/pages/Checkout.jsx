@@ -24,7 +24,7 @@ const PLUS_DISCOUNT_RATE = 0.05; // 5% off for TechVault Plus
 
 export default function Checkout() {
     const { items, subtotal, clearCart } = useCart();
-    const { user, login } = useAuth();
+    const { user } = useAuth();
 
     const [form, setForm] = useState({
         firstName: user?.firstName || '',
@@ -213,7 +213,6 @@ export default function Checkout() {
                 console.warn('Payment details save failed (order still proceeds):', payErr);
             }
 
-            login(customer);
             clearCart();
             setSuccess({
                 ...order,

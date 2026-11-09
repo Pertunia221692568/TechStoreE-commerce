@@ -10,6 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.Customer;
+import za.ac.cput.domain.Login;
+import za.ac.cput.domain.Registration;
 import za.ac.cput.domain.Role;
 import za.ac.cput.domain.User;
 import za.ac.cput.dto.auth.AuthResponse;
@@ -17,9 +19,12 @@ import za.ac.cput.dto.auth.LoginRequest;
 import za.ac.cput.dto.auth.RegisterRequest;
 import za.ac.cput.factory.CustomerFactory;
 import za.ac.cput.repository.ICustomerRepository;
+import za.ac.cput.repository.ILoginRepository;
+import za.ac.cput.repository.IRegistrationRepository;
 import za.ac.cput.security.token.JwtService;
 import za.ac.cput.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
@@ -31,17 +36,23 @@ public class AuthController {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final ICustomerRepository customerRepository;
+    private final ILoginRepository loginRepository;
+    private final IRegistrationRepository registrationRepository;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserService userService,
                           JwtService jwtService,
                           PasswordEncoder passwordEncoder,
-                          ICustomerRepository customerRepository) {
+                          ICustomerRepository customerRepository,
+                          ILoginRepository loginRepository,
+                          IRegistrationRepository registrationRepository) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.customerRepository = customerRepository;
+        this.loginRepository = loginRepository;
+        this.registrationRepository = registrationRepository;
     }
 
     @PostMapping("/login")
@@ -58,6 +69,7 @@ public class AuthController {
                     .orElseThrow(() -> new BadCredentialsException("User not found"));
 
             userService.updateLastLogin(user.getId());
+            recordLogin(user);
 
             String token = jwtService.generateToken(user);
             Long customerId = resolveCustomerId(user);
@@ -96,6 +108,10 @@ public class AuthController {
         Customer customer = CustomerFactory.create(user, request.getAddress());
         customer = customerRepository.save(customer);
 
+        userService.updateLastLogin(user.getId());
+        recordRegistration(user);
+        recordLogin(user);
+
         String token = jwtService.generateToken(user);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(
@@ -124,6 +140,24 @@ public class AuthController {
                 "role", user.getRole().name(),
                 "customerId", customerId != null ? customerId : ""
         ));
+    }
+
+    /** Keeps the "registrations" table up to date (customers only). */
+    private void recordRegistration(User user) {
+        if (user.getRole() != Role.CUSTOMER) return;
+        if (registrationRepository.existsByEmail(user.getEmail())) return;
+        registrationRepository.save(new Registration(
+                user.getEmail(), user.getPasswordHash(), user.getCreatedAt()));
+    }
+
+    /** Keeps the "logins" table up to date: one row per account, last login time refreshed. */
+    private void recordLogin(User user) {
+        if (user.getRole() == Role.CUSTOMER) recordRegistration(user);
+        Login login = loginRepository.findByUsername(user.getEmail())
+                .orElseGet(() -> new Login(user.getEmail(), user.getPasswordHash(),
+                        user.getCreatedAt(), null));
+        login.setLastLoginDate(LocalDateTime.now());
+        loginRepository.save(login);
     }
 
     private Long resolveCustomerId(User user) {
