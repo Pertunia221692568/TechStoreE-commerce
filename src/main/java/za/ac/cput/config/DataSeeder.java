@@ -8,6 +8,7 @@ import za.ac.cput.repository.IProductsRepository;
 import za.ac.cput.repository.IUserRepository;
 import za.ac.cput.service.ProductsService;
 import za.ac.cput.service.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 
@@ -41,20 +42,29 @@ public class DataSeeder {
     }
 
     @Bean
-    CommandLineRunner seedAdminUser(IUserRepository userRepo, UserService userService) {
+    CommandLineRunner seedAdminUser(IUserRepository userRepo,
+                                    UserService userService,
+                                    PasswordEncoder passwordEncoder) {
         return args -> {
             String adminEmail = "admin@techvault.co.za";
             if (userRepo.existsByEmail(adminEmail)) return;
 
+            String hashedPassword = passwordEncoder.encode("Admin@123");
+
             userService.createAdminUser(
                     adminEmail,
-                    "TEMP_ADMIN_HASH",
+                    hashedPassword,
                     "TechVault",
                     "Admin"
             );
-            System.out.println("[DataSeeder] Default ADMIN user created: " + adminEmail);
+            System.out.println("[DataSeeder] Default ADMIN user created:");
+            System.out.println("             email    : " + adminEmail);
+            System.out.println("             password : Admin@123");
         };
     }
+
+
+
 
     private void add(ProductsService s, String name, String brand, String desc, String price,
                      int stock, String category, String image, String condition) {

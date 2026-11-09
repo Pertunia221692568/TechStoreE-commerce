@@ -1,19 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import {
-    registerCustomer,
-    createRegistration,
-    createLogin,
-} from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
 import Logo from '../components/Logo';
-
-function nowLocalDateTime() {
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-}
 
 export default function Login() {
     const [searchParams] = useSearchParams();
@@ -30,60 +18,55 @@ export default function Login() {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+
+    const { login, register } = useAuth();
     const navigate = useNavigate();
 
-    const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
 
+    // ── LOGIN ──────────────────────────────────────────────────
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            await login(form.email.trim(), form.password);
+            navigate('/');
+        } catch (err) {
+            const msg =
+                err.response?.data?.error ||
+                err.response?.data?.message ||
+                'Could not connect to the server!';
+            setError(typeof msg === 'string' ? msg : 'Login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ── REGISTER ───────────────────────────────────────────────
     const handleRegister = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
-        const email = form.email.trim().toLowerCase();
-        const password = form.password;
-        const when = nowLocalDateTime();
-
-        if (!password || password.length < 4) {
-            setError('Password must be at least 4 characters.');
+        if (!form.password || form.password.length < 6) {
+            setError('Password must be at least 6 characters.');
             setLoading(false);
             return;
         }
 
         try {
-            // 1) Customer profile
-            const customer = await registerCustomer({
+            await register({
                 firstName: form.firstName.trim(),
                 lastName: form.lastName.trim(),
-                email,
+                email: form.email.trim(),
                 phone: form.phone || '',
                 address: form.address || '',
+                password: form.password,
             });
-
-            // 2) registrations table
-            try {
-                await createRegistration({
-                    email,
-                    password,
-                    registrationDate: when,
-                });
-            } catch (regErr) {
-                console.warn('Registration table save failed:', regErr);
-            }
-
-            // 3) logins table
-            try {
-                await createLogin({
-                    username: email,
-                    passwordHash: password, // plain for now — Spring Security will hash later
-                    lastPasswordDate: when,
-                    lastLoginDate: when,
-                });
-            } catch (loginErr) {
-                console.warn('Login table save failed:', loginErr);
-            }
-
-            login(customer);
             navigate('/');
         } catch (err) {
             const msg =
@@ -95,71 +78,6 @@ export default function Login() {
                     ? msg
                     : 'Registration failed. Email may already exist.'
             );
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-
-        const email = form.email.trim().toLowerCase();
-        const password = form.password;
-        const when = nowLocalDateTime();
-
-        try {
-            // 1) Check registrations (email + password)
-            let regOk = false;
-            try {
-                const regRes = await api.get('/api/registrations');
-                const regs = Array.isArray(regRes.data) ? regRes.data : [];
-                const match = regs.find(
-                    (r) =>
-                        r.email?.toLowerCase() === email &&
-                        r.password === password
-                );
-                regOk = !!match;
-            } catch {
-                // If registrations empty/unavailable, fall back to customer-only
-                regOk = true;
-            }
-
-            if (!regOk) {
-                setError('Invalid email or password.');
-                setLoading(false);
-                return;
-            }
-
-            // 2) Load customer profile
-            const res = await api.get('/api/customers');
-            const customers = Array.isArray(res.data) ? res.data : [];
-            const found = customers.find(
-                (c) => c.email?.toLowerCase() === email
-            );
-            if (!found) {
-                setError('No customer profile found. Please register first.');
-                setLoading(false);
-                return;
-            }
-
-            // 3) Record login in logins table
-            try {
-                await createLogin({
-                    username: email,
-                    passwordHash: password,
-                    lastPasswordDate: when,
-                    lastLoginDate: when,
-                });
-            } catch (loginErr) {
-                console.warn('Login table save failed:', loginErr);
-            }
-
-            login(found);
-            navigate('/');
-        } catch (err) {
-            setError('Could not connect to the server!');
         } finally {
             setLoading(false);
         }
@@ -179,6 +97,7 @@ export default function Login() {
                 </p>
             </div>
 
+            {/* Toggle buttons */}
             <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
                 <button
                     type="button"
@@ -210,68 +129,77 @@ export default function Login() {
                 </button>
             </div>
 
-            <div className="card p-6 sm:p-8">
+            {/* Form card */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <form
                     onSubmit={mode === 'login' ? handleLogin : handleRegister}
                     className="space-y-4"
                 >
                     {mode === 'register' && (
                         <>
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="mb-1 block text-xs font-medium text-slate-600">
+                                    <label className="mb-1 block text-sm font-medium text-slate-700">
                                         First name
                                     </label>
                                     <input
+                                        type="text"
                                         name="firstName"
                                         value={form.firstName}
                                         onChange={handleChange}
                                         required
                                         className="input-field"
+                                        placeholder="First name"
                                     />
                                 </div>
                                 <div>
-                                    <label className="mb-1 block text-xs font-medium text-slate-600">
+                                    <label className="mb-1 block text-sm font-medium text-slate-700">
                                         Last name
                                     </label>
                                     <input
+                                        type="text"
                                         name="lastName"
                                         value={form.lastName}
                                         onChange={handleChange}
                                         required
                                         className="input-field"
+                                        placeholder="Last name"
                                     />
                                 </div>
                             </div>
+
                             <div>
-                                <label className="mb-1 block text-xs font-medium text-slate-600">
+                                <label className="mb-1 block text-sm font-medium text-slate-700">
                                     Phone
                                 </label>
                                 <input
+                                    type="tel"
                                     name="phone"
                                     value={form.phone}
                                     onChange={handleChange}
                                     className="input-field"
-                                    placeholder="Optional"
+                                    placeholder="Phone number"
                                 />
                             </div>
+
                             <div>
-                                <label className="mb-1 block text-xs font-medium text-slate-600">
+                                <label className="mb-1 block text-sm font-medium text-slate-700">
                                     Address
                                 </label>
                                 <input
+                                    type="text"
                                     name="address"
                                     value={form.address}
                                     onChange={handleChange}
                                     className="input-field"
-                                    placeholder="Optional"
+                                    placeholder="Your address"
                                 />
                             </div>
                         </>
                     )}
 
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-slate-600">
+                        <label className="mb-1 block text-sm font-medium text-slate-700">
                             Email
                         </label>
                         <input
@@ -286,7 +214,7 @@ export default function Login() {
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-slate-600">
+                        <label className="mb-1 block text-sm font-medium text-slate-700">
                             Password
                         </label>
                         <input
@@ -296,8 +224,10 @@ export default function Login() {
                             onChange={handleChange}
                             required
                             className="input-field"
-                            placeholder={mode === 'register' ? 'Min 4 characters' : 'Your password'}
-                            minLength={4}
+                            placeholder={
+                                mode === 'register' ? 'Min 6 characters' : 'Your password'
+                            }
+                            minLength={mode === 'register' ? 6 : 1}
                         />
                     </div>
 
@@ -307,7 +237,11 @@ export default function Login() {
                         </p>
                     )}
 
-                    <button type="submit" disabled={loading} className="btn-primary w-full !py-3">
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary w-full !py-3"
+                    >
                         {loading
                             ? 'Please wait...'
                             : mode === 'login'
