@@ -4,6 +4,35 @@ import { getProducts } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Logo from '../components/Logo';
+import TechBackdrop from '../components/TechBackdrop';
+
+const TYPED_WORDS = ['laptops', 'phones', 'desktops', 'monitors', 'gaming gear'];
+const CATEGORIES = ['Laptop', 'Desktop', 'Phone', 'Monitor', 'Keyboard', 'Mouse', 'Accessory'];
+const BRANDS = ['Dell', 'HP', 'Lenovo', 'Apple', 'Samsung', 'Logitech', 'Razer', 'LG', 'Sony', 'Keychron'];
+
+// Types one word at a time, deletes it, then moves to the next
+function useTypewriter(words) {
+    const [text, setText] = useState('');
+    const [index, setIndex] = useState(0);
+    const [deleting, setDeleting] = useState(false);
+
+    useEffect(() => {
+        const word = words[index % words.length];
+        const delay = deleting ? 45 : text === word ? 1400 : 90;
+        const t = setTimeout(() => {
+            if (!deleting && text === word) setDeleting(true);
+            else if (deleting && text === '') {
+                setDeleting(false);
+                setIndex((i) => i + 1);
+            } else {
+                setText(deleting ? word.slice(0, text.length - 1) : word.slice(0, text.length + 1));
+            }
+        }, delay);
+        return () => clearTimeout(t);
+    }, [text, deleting, index, words]);
+
+    return text;
+}
 
 export default function Home() {
     const [featured, setFeatured] = useState([]);
@@ -12,6 +41,8 @@ export default function Home() {
     // Simulated daily shipping capacity (unique differentiator)
     // Backend can later expose GET /api/shipping/capacity
     const DAILY_CAPACITY = 50;
+    const typed = useTypewriter(TYPED_WORDS);
+    const [spot, setSpot] = useState({ x: 70, y: 30 });
     const [slotsUsed] = useState(() => Math.floor(Math.random() * 18) + 8);
 
     useEffect(() => {
@@ -29,17 +60,27 @@ export default function Home() {
     return (
         <div className="animate-fade-in">
             {/* Hero – screams Tech Store immediately */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-surface-900 via-brand-950 to-surface-900 text-white">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(92,124,250,0.28),transparent_55%)]" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(6,182,212,0.18),transparent_50%)]" />
+            <section className="relative overflow-hidden bg-gradient-to-br from-surface-900 via-brand-950 to-surface-900 text-white"
+                     onMouseMove={(e) => {
+                         const r = e.currentTarget.getBoundingClientRect();
+                         setSpot({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
+                     }}
+            >
+                <TechBackdrop />
                 <div
-                    className="absolute inset-0 opacity-[0.04]"
+                    className="absolute inset-0"
+                    style={{ background: `radial-gradient(500px circle at ${spot.x}% ${spot.y}%, rgba(34,211,238,0.16), transparent 60%)` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-surface-950/90 via-surface-950/50 to-transparent" />
+                <div
+                    className="absolute inset-0 opacity-[0.06]"
                     style={{
-                        backgroundImage: `linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
-                                          linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)`,
+                        backgroundImage: `linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px),
+                                          linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)`,
                         backgroundSize: '48px 48px',
                     }}
                 />
+                <div className="absolute inset-x-0 top-0 h-24 animate-scan bg-gradient-to-b from-transparent via-accent-400/10 to-transparent" />
 
                 <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
                     <div className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between">
@@ -59,7 +100,13 @@ export default function Home() {
                                 </span>
                             </h1>
 
-                            <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
+                            <p className="mt-5 font-mono text-sm text-accent-400 sm:text-base">
+                                <span className="text-slate-500">&gt;</span> shop --new --certified{' '}
+                                <span className="text-white">{typed}</span>
+                                <span className="animate-blink">▌</span>
+                            </p>
+
+                            <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
                                 New and certified pre-owned laptops, phones, desktops, monitors and gear.
                                 Transparent pricing, genuine products, and delivery you can track.
                             </p>
@@ -132,6 +179,33 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* Shop by category + brand strip */}
+            <section className="relative border-b border-white/5 bg-surface-950 text-white">
+                <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+                    <p className="font-mono text-xs uppercase tracking-[0.25em] text-accent-400">&gt; browse --by-category</p>
+                    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+                        {CATEGORIES.map((c, i) => (
+                            <Link
+                                key={c}
+                                to={`/products?category=${c}`}
+                                className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-accent-400/60 hover:bg-brand-600/20 hover:shadow-glow"
+                            >
+                                <span className="font-mono text-[11px] text-slate-500 group-hover:text-accent-400">0{i + 1}</span>
+                                <p className="mt-1 font-display text-base font-bold">{c}s</p>
+                                <p className="mt-1 text-xs text-slate-400 transition group-hover:text-white">Browse →</p>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+                <div className="overflow-hidden border-t border-white/5 py-4">
+                    <div className="flex w-max animate-marquee gap-12 whitespace-nowrap font-display text-lg font-bold uppercase tracking-widest text-slate-600">
+                        {[...BRANDS, ...BRANDS].map((b, i) => (
+                            <span key={i} className="transition hover:text-accent-400">{b}</span>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* Value props */}
             <section className="border-b border-slate-100 bg-white">
                 <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
@@ -187,14 +261,14 @@ export default function Home() {
             </section>
 
             {/* Featured products */}
-            <section className="bg-slate-50/80">
+            <section className="relative bg-gradient-to-b from-surface-950 to-surface-900 text-white">
                 <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
                     <div className="mb-8 flex items-end justify-between">
                         <div>
-                            <h2 className="font-display text-2xl font-bold text-slate-900">Featured products</h2>
-                            <p className="mt-1 text-sm text-slate-500">Hand-picked tech ready to ship</p>
+                            <h2 className="font-display text-2xl font-bold text-white">Featured products</h2>
+                            <p className="mt-1 text-sm text-slate-400">Hover a product to preview its specs</p>
                         </div>
-                        <Link to="/products" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
+                        <Link to="/products" className="text-sm font-semibold text-accent-400 hover:text-white">
                             View full catalogue →
                         </Link>
                     </div>

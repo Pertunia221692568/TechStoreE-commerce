@@ -116,6 +116,9 @@ export const getOrdersByEmail = (email) =>
 export const getOrder = (id) =>
     api.get(`/api/orders/${id}`).then((r) => r.data);
 
+export const getOrderTracking = (id) =>
+    api.get(`/api/orders/${id}/tracking`).then((r) => r.data);
+
 export const cancelOrder = (id) =>
     api.post(`/api/orders/${id}/cancel`).then((r) => r.data);
 

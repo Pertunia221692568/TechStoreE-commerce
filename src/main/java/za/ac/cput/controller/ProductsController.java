@@ -40,9 +40,16 @@ public class ProductsController {
     public ResponseEntity<List<Products>> getAll(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String category) {
-        if (search != null)   return ResponseEntity.ok(productService.search(search));
-        if (category != null) return ResponseEntity.ok(productService.findByCategory(category));
-        return ResponseEntity.ok(productService.findAll());
+        // search (name or brand) and category filters work together
+        List<Products> result = (search != null && !search.isBlank())
+                ? productService.search(search.trim())
+                : productService.findAll();
+        if (category != null && !category.isBlank() && !"All".equalsIgnoreCase(category)) {
+            result = result.stream()
+                    .filter(p -> category.equalsIgnoreCase(p.getCategory()))
+                    .toList();
+        }
+        return ResponseEntity.ok(result);
     }
 
     /** GET /api/products/{id} */

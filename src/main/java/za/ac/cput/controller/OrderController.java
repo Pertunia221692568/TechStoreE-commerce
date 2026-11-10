@@ -96,6 +96,16 @@ public class OrderController {
         }
     }
 
+    /** GET /api/orders/{id}/tracking — courier, delivery and payment summary for one order */
+    @GetMapping("/{id}/tracking")
+    public ResponseEntity<?> getTracking(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(orderService.getTracking(id));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     /** POST /api/orders/{id}/cancel — cancel an order */
     @PostMapping("/{id}/cancel")
     public ResponseEntity<?> cancelOrder(@PathVariable Long id) {

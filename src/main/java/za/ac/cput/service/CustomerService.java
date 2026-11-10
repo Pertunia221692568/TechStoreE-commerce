@@ -8,6 +8,8 @@ import za.ac.cput.domain.Customer;
 import za.ac.cput.domain.User;
 import za.ac.cput.factory.CustomerFactory;
 import za.ac.cput.repository.ICustomerRepository;
+import za.ac.cput.repository.ILoginRepository;
+import za.ac.cput.repository.IRegistrationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +22,16 @@ public class CustomerService {
 
     private final ICustomerRepository customerRepository;
     private final UserService userService;
+    private final ILoginRepository loginRepository;
+    private final IRegistrationRepository registrationRepository;
 
-    public CustomerService(ICustomerRepository customerRepository, UserService userService) {
+    public CustomerService(ICustomerRepository customerRepository, UserService userService,
+                           ILoginRepository loginRepository,
+                           IRegistrationRepository registrationRepository) {
         this.customerRepository = customerRepository;
         this.userService = userService;
+        this.loginRepository = loginRepository;
+        this.registrationRepository = registrationRepository;
     }
 
     public List<Customer> findAll() {
@@ -87,7 +95,31 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
+    /**
+     * Permanently deletes a customer account.
+     * Personal details are erased and the login is disabled, so the person can no longer
+     * sign in and the same email can be registered again. Past orders are kept (without
+     * personal details) so shop records and revenue stay correct.
+     */
     public void delete(Long id) {
-        customerRepository.deleteById(id);
+        Customer customer = customerRepository.findById(id).orElse(null);
+        if (customer == null) return;
+
+        User user = customer.getUser();
+        if (user != null) {
+            String oldEmail = user.getEmail();
+            loginRepository.findByUsername(oldEmail).ifPresent(loginRepository::delete);
+            registrationRepository.deleteByEmail(oldEmail);
+
+            user.setEmail("deleted-" + user.getId() + "@deleted.invalid");
+            user.setFirstName("Deleted");
+            user.setLastName("User");
+            user.setPhone("-");
+            user.setPasswordHash("!");      // can never match a real password
+            user.setEnabled(false);
+            userService.save(user);
+        }
+        customer.setAddress(null);
+        customerRepository.save(customer);
     }
 }

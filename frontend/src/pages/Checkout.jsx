@@ -104,8 +104,11 @@ export default function Checkout() {
                     </p>
                 )}
                 <div className="mt-8 flex justify-center gap-3">
-                    <Link to="/orders" className="btn-primary">
-                        View orders
+                    <Link to={`/orders/${success.id}`} className="btn-primary">
+                        Track this order
+                    </Link>
+                    <Link to="/orders" className="btn-secondary">
+                        My orders
                     </Link>
                     <Link to="/products" className="btn-secondary">
                         Continue shopping

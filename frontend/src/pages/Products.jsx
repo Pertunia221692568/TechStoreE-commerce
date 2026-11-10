@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import TechBackdrop from '../components/TechBackdrop';
 import { getProducts } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -41,11 +42,15 @@ export default function Products() {
 
     return (
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 animate-fade-in">
-            <div className="mb-8">
-                <h1 className="font-display text-3xl font-bold text-slate-900">Shop</h1>
-                <p className="mt-1 text-sm text-slate-500">
-                    {search ? `Results for "${search}"` : 'Browse our full catalogue'}
-                </p>
+            <div className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-surface-950 via-brand-950 to-surface-900 px-6 py-10 text-white shadow-glow sm:px-10">
+                <TechBackdrop strong={false} />
+                <div className="relative">
+                    <p className="font-mono text-xs uppercase tracking-[0.25em] text-accent-400">&gt; catalogue.load()</p>
+                    <h1 className="mt-2 font-display text-3xl font-extrabold sm:text-4xl">Shop</h1>
+                    <p className="mt-1 text-sm text-slate-300">
+                        {search ? `Results for "${search}"` : 'Hover any product to preview its specs'}
+                    </p>
+                </div>
             </div>
 
             <div className="mb-8 flex flex-wrap gap-2">
@@ -76,10 +81,33 @@ export default function Products() {
             ) : products.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-200 py-16 text-center">
                     <p className="text-slate-500">No products match your filters.</p>
+                    {search && (
+                        <button onClick={() => { const next = new URLSearchParams(searchParams); next.delete('search'); setSearchParams(next); }} className="btn-secondary mt-4">
+                            Clear search
+                        </button>
+                    )}
                 </div>
             ) : (
                 <>
-                    <p className="mb-4 text-sm text-slate-500">{products.length} product{products.length !== 1 ? 's' : ''}</p>
+                    <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                        <p>
+                            {products.length} product{products.length !== 1 ? 's' : ''}
+                            {search && <> for “{search}”</>}
+                            {category !== 'All' && <> in {category}</>}
+                        </p>
+                        {search && (
+                            <button
+                                onClick={() => {
+                                    const next = new URLSearchParams(searchParams);
+                                    next.delete('search');
+                                    setSearchParams(next);
+                                }}
+                                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 hover:border-brand-300 hover:text-brand-600"
+                            >
+                                Clear search ✕
+                            </button>
+                        )}
+                    </div>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {products.map((p) => (
                             <ProductCard key={p.id} product={p} />
