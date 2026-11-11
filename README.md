@@ -71,4 +71,4 @@ The backend follows a layered design: **Controller** (REST endpoints) → **Serv
 
    
 ### UML Diagram
-<img src="./TechVault-UML.svg" alt="TechVault UML Diagram">
+<img src="./TechVaultUML2.svg" alt="TechVault UML Diagram">
