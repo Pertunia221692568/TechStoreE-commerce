@@ -22,6 +22,10 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
+import AdminCustomers from './pages/admin/AdminCustomers';
+import AdminDeliveries from './pages/admin/AdminDeliveries';
+import AdminPayments from './pages/admin/AdminPayments.jsx';
+import AdminEnquiries from './pages/admin/AdminEnquiries';
 
 // Customer-facing layout: store navbar + footer
 function StoreLayout() {
@@ -66,6 +70,10 @@ export default function App() {
                                 <Route path="/admin" element={<AdminDashboard />} />
                                 <Route path="/admin/products" element={<AdminProducts />} />
                                 <Route path="/admin/orders" element={<AdminOrders />} />
+                                <Route path="/admin/customers" element={<AdminCustomers />} />
+                                <Route path="/admin/deliveries" element={<AdminDeliveries />} />
+                                <Route path="/admin/payments" element={<AdminPayments />} />
+                                <Route path="/admin/enquiries" element={<AdminEnquiries />} />
                             </Route>
                         </Route>
                     </Routes>

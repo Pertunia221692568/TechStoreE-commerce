@@ -153,3 +153,18 @@ export const getRegistrations = () =>
     api.get('/api/registrations').then((r) => r.data);
 
 export default api;
+// ── Admin dashboard ──────────────────────────────────────────
+export const adminStats = () => api.get('/api/admin/stats').then((r) => r.data);
+export const adminCustomers = () => api.get('/api/admin/customers').then((r) => r.data);
+export const adminSetCustomerEnabled = (userId, enabled) =>
+    api.patch(`/api/admin/customers/${userId}/enabled`, { enabled }).then((r) => r.data);
+export const adminPayments = () => api.get('/api/admin/payments').then((r) => r.data);
+export const adminDeliveries = () => api.get('/api/admin/deliveries').then((r) => r.data);
+export const adminUpdateDelivery = (id, data) =>
+    api.patch(`/api/admin/deliveries/${id}`, data).then((r) => r.data);
+export const adminEnquiries = () => api.get('/api/admin/enquiries').then((r) => r.data);
+export const adminUpdateEnquiry = (id, data) =>
+    api.patch(`/api/admin/enquiries/${id}`, data).then((r) => r.data);
+
+// ── Enquiries (public contact form) ──────────────────────────
+export const createEnquiry = (data) => api.post('/api/enquiries', data).then((r) => r.data);
