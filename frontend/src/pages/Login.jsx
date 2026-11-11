@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
+import { resendVerification } from '../services/api';
 
 export default function Login() {
     const [searchParams] = useSearchParams();
@@ -77,6 +78,12 @@ export default function Login() {
                 password: form.password,
             });
 
+            // Verification switched off on the server: already logged in
+            if (data.token) {
+                navigate(data.role === 'ADMIN' ? '/admin' : '/');
+                return;
+            }
+
             // Backend returns verificationCode for demo purposes
             setDemoCode(data.verificationCode || '');
             setSuccess(
@@ -102,7 +109,7 @@ export default function Login() {
         setLoading(true);
         setError('');
         try {
-            const data = await verifyEmail(form.code.trim());
+            const data = await verifyEmail(form.email.trim(), form.code.trim());
             navigate(data.role === 'ADMIN' ? '/admin' : '/');
         } catch (err) {
             const msg =
@@ -112,6 +119,18 @@ export default function Login() {
             setError(typeof msg === 'string' ? msg : 'Invalid or expired code');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // ── RESEND VERIFICATION CODE ───────────────────────────────
+    const handleResend = async () => {
+        setError('');
+        try {
+            const data = await resendVerification(form.email.trim());
+            setSuccess(data.message || 'A new code has been emailed.');
+            setDemoCode(data.verificationCode || '');
+        } catch (err) {
+            setError(err.response?.data?.error || 'Could not resend the code');
         }
     };
 
@@ -146,7 +165,7 @@ export default function Login() {
         setLoading(true);
         setError('');
         try {
-            const data = await resetPassword(form.code.trim(), form.newPassword);
+            const data = await resetPassword(form.email.trim(), form.code.trim(), form.newPassword);
             setSuccess(data.message || 'Password reset successful. You can now sign in.');
             setMode('login');
             setDemoCode('');
@@ -174,8 +193,8 @@ export default function Login() {
     const subtitles = {
         login: 'Use your registered email and password.',
         register: 'Join TechVault to track orders and manage your profile.',
-        verify: 'Enter the 6-digit code that was generated for your account.',
-        forgot: 'Enter your email and we will generate a reset code.',
+        verify: 'Enter the 6-digit code we emailed to you.',
+        forgot: 'Enter your email and we will email you a reset code.',
         reset: 'Enter the reset code and your new password.',
     };
 
@@ -405,6 +424,13 @@ export default function Login() {
                         </button>
 
                         <p className="text-center text-sm text-slate-500">
+                            <button
+                                type="button"
+                                onClick={handleResend}
+                                className="mr-4 font-medium text-brand-600 hover:underline"
+                            >
+                                Resend code
+                            </button>
                             <button
                                 type="button"
                                 onClick={() => switchMode('login')}

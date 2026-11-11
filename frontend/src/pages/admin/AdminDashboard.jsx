@@ -64,7 +64,6 @@ export default function AdminDashboard() {
     return (
         <div className="animate-fade-in">
             <div className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-surface-950 via-brand-950 to-brand-700 p-6 text-white shadow-glow sm:p-8">
-                <p className="font-mono text-xs uppercase tracking-[0.25em] text-accent-400">&gt; admin.dashboard()</p>
                 <h1 className="mt-2 font-display text-2xl font-extrabold sm:text-3xl">Welcome back, {user?.firstName}</h1>
                 <p className="mt-1 text-sm text-slate-300">Here is how TechVault is doing today.</p>
             </div>

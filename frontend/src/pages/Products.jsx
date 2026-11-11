@@ -45,7 +45,6 @@ export default function Products() {
             <div className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-surface-950 via-brand-950 to-surface-900 px-6 py-10 text-white shadow-glow sm:px-10">
                 <TechBackdrop strong={false} />
                 <div className="relative">
-                    <p className="font-mono text-xs uppercase tracking-[0.25em] text-accent-400">&gt; catalogue.load()</p>
                     <h1 className="mt-2 font-display text-3xl font-extrabold sm:text-4xl">Shop</h1>
                     <p className="mt-1 text-sm text-slate-300">
                         {search ? `Results for "${search}"` : 'Hover any product to preview its specs'}

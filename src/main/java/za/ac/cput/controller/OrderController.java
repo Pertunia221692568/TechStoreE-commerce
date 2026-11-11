@@ -4,6 +4,8 @@
 package za.ac.cput.controller;
 
 import za.ac.cput.domain.Order;
+import za.ac.cput.security.policy.CustomerOwnershipPolicy;
+import za.ac.cput.security.policy.OrderOwnershipPolicy;
 import za.ac.cput.service.OrderService;
 import za.ac.cput.util.OrderUtil;
 import org.springframework.http.HttpStatus;
@@ -21,9 +23,15 @@ import java.util.Map;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderOwnershipPolicy orderOwnershipPolicy;
+    private final CustomerOwnershipPolicy customerOwnershipPolicy;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService,
+                           OrderOwnershipPolicy orderOwnershipPolicy,
+                           CustomerOwnershipPolicy customerOwnershipPolicy) {
         this.orderService = orderService;
+        this.orderOwnershipPolicy = orderOwnershipPolicy;
+        this.customerOwnershipPolicy = customerOwnershipPolicy;
     }
 
     /** GET /api/orders — get all orders, optionally filter by status */
@@ -45,13 +53,17 @@ public class OrderController {
     @GetMapping("/{id}")
     public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
         return orderService.findById(id)
-                .map(ResponseEntity::ok)
+                .map(order -> {
+                    orderOwnershipPolicy.checkAccess(order);   // owner or admin only
+                    return ResponseEntity.ok(order);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     /** GET /api/orders/customer/{customerId} — get orders by customer */
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<List<Order>> getOrdersByCustomer(@PathVariable Long customerId) {
+        customerOwnershipPolicy.checkAccess(customerId);   // own orders or admin only
         return ResponseEntity.ok(orderService.findByCustomer(customerId));
     }
 
@@ -63,6 +75,7 @@ public class OrderController {
     public ResponseEntity<?> placeOrder(@RequestBody Map<String, Object> body) {
         try {
             Long customerId       = Long.valueOf(body.get("customerId").toString());
+            customerOwnershipPolicy.checkAccess(customerId);   // cannot order as someone else
             String shippingAddress = body.get("shippingAddress").toString();
 
             @SuppressWarnings("unchecked")
@@ -76,6 +89,8 @@ public class OrderController {
             Order order = orderService.placeOrder(customerId, shippingAddress, productIds, quantities);
             return ResponseEntity.status(HttpStatus.CREATED).body(order);
 
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            throw e;   // handled globally as 403
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
@@ -99,6 +114,7 @@ public class OrderController {
     /** GET /api/orders/{id}/tracking — courier, delivery and payment summary for one order */
     @GetMapping("/{id}/tracking")
     public ResponseEntity<?> getTracking(@PathVariable Long id) {
+        orderService.findById(id).ifPresent(orderOwnershipPolicy::checkAccess);
         try {
             return ResponseEntity.ok(orderService.getTracking(id));
         } catch (IllegalArgumentException e) {
@@ -109,6 +125,7 @@ public class OrderController {
     /** POST /api/orders/{id}/cancel — cancel an order */
     @PostMapping("/{id}/cancel")
     public ResponseEntity<?> cancelOrder(@PathVariable Long id) {
+        orderService.findById(id).ifPresent(orderOwnershipPolicy::checkAccess);
         try {
             Order cancelled = orderService.cancelOrder(id);
             return ResponseEntity.ok(cancelled);

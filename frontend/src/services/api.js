@@ -29,14 +29,17 @@ export const login = (email, password) =>
 export const register = (data) =>
     api.post('/api/auth/register', data).then((r) => r.data);
 
-export const verifyEmail = (code) =>
-    api.post('/api/auth/verify-email', { code }).then((r) => r.data);
+export const verifyEmail = (email, code) =>
+    api.post('/api/auth/verify-email', { email, code }).then((r) => r.data);
+
+export const resendVerification = (email) =>
+    api.post('/api/auth/resend-verification', { email }).then((r) => r.data);
 
 export const forgotPassword = (email) =>
     api.post('/api/auth/forgot-password', { email }).then((r) => r.data);
 
-export const resetPassword = (code, newPassword) =>
-    api.post('/api/auth/reset-password', { code, newPassword }).then((r) => r.data);
+export const resetPassword = (email, code, newPassword) =>
+    api.post('/api/auth/reset-password', { email, code, newPassword }).then((r) => r.data);
 
 export const getMe = () =>
     api.get('/api/auth/me').then((r) => r.data);

@@ -4,6 +4,7 @@
 package za.ac.cput.controller;
 
 import za.ac.cput.domain.Customer;
+import za.ac.cput.security.policy.CustomerOwnershipPolicy;
 import za.ac.cput.service.CustomerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +23,12 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
-    public CustomerController(CustomerService customerService) {
+    private final CustomerOwnershipPolicy customerOwnershipPolicy;
+
+    public CustomerController(CustomerService customerService,
+                              CustomerOwnershipPolicy customerOwnershipPolicy) {
         this.customerService = customerService;
+        this.customerOwnershipPolicy = customerOwnershipPolicy;
     }
 
     @GetMapping
@@ -33,6 +38,7 @@ public class CustomerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Customer> getById(@PathVariable Long id) {
+        customerOwnershipPolicy.checkAccess(id);
         return customerService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -41,6 +47,7 @@ public class CustomerController {
     /** GET /api/customers/by-email?email=... — used by checkout to reuse an existing customer */
     @GetMapping("/by-email")
     public ResponseEntity<Customer> getByEmail(@RequestParam String email) {
+        customerOwnershipPolicy.checkAccessEmail(email);
         return customerService.findByEmail(email.trim())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -65,6 +72,7 @@ public class CustomerController {
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id,
                                     @RequestBody Map<String, String> body) {
+        customerOwnershipPolicy.checkAccess(id);
         try {
             Customer customer = customerService.update(
                     id,

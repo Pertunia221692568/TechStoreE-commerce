@@ -19,14 +19,16 @@ import java.util.UUID;
  *  - Password reset (forgot-password flow)
  *
  * Tokens expire after a short window and can be used only once.
- * In a real production system the code would also be emailed;
- * for this project the code is returned so the front-end / demo can show it.
+ * Codes are delivered by {@link EmailService}; this class only creates and validates them.
  */
 @Service
 public class VerificationService {
 
     private static final int EMAIL_VERIFICATION_MINUTES = 30;
     private static final int PASSWORD_RESET_MINUTES = 15;
+    private static final int MAX_ATTEMPTS = 5;
+    private static final String INVALID_EMAIL_CODE = "Invalid or already used verification code";
+    private static final String INVALID_RESET_CODE = "Invalid or already used reset code";
 
     private final IEmailVerificationTokenRepository emailTokenRepo;
     private final IPasswordResetTokenRepository resetTokenRepo;
@@ -45,42 +47,54 @@ public class VerificationService {
     // Email verification
     // ─────────────────────────────────────────────────────────────
 
+    public int emailVerificationMinutes() { return EMAIL_VERIFICATION_MINUTES; }
+
+    public int passwordResetMinutes() { return PASSWORD_RESET_MINUTES; }
+
     /**
      * Creates a new email-verification token for the given user.
-     * Any previous unused token for the same user is removed.
+     * Any previous token for the same user is removed.
      *
-     * @return the 6-digit code that the user must enter
+     * @return the 6-digit code that must be delivered to the user (by email)
      */
     @Transactional
     public String createEmailVerificationToken(User user) {
         emailTokenRepo.deleteByUser_Id(user.getId());
+        emailTokenRepo.flush();
 
         String token = generateSecureToken();
         String code  = generateSixDigitCode();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(EMAIL_VERIFICATION_MINUTES);
 
-        EmailVerificationToken verificationToken =
-                new EmailVerificationToken(token, code, user, expiresAt);
-        emailTokenRepo.save(verificationToken);
-
-        // In production you would send an email here.
-        // For the project we return the code so it can be displayed / logged.
+        emailTokenRepo.save(new EmailVerificationToken(token, code, user, expiresAt));
         return code;
     }
 
     /**
-     * Verifies the code, enables the user account, and marks the token as used.
+     * Verifies the code for the given email, enables the account and marks the token as used.
+     * The code is only accepted for the account it was issued to, and is locked after
+     * {@value #MAX_ATTEMPTS} wrong guesses.
      */
-    @Transactional
-    public User verifyEmail(String code) {
-        EmailVerificationToken token = emailTokenRepo.findByCodeAndUsedFalse(code.trim())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or already used verification code"));
+    @Transactional(noRollbackFor = IllegalArgumentException.class)
+    public User verifyEmail(String email, String code) {
+        User user = userRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new IllegalArgumentException(INVALID_EMAIL_CODE));
+
+        EmailVerificationToken token = emailTokenRepo.findByUser_IdAndUsedFalse(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException(INVALID_EMAIL_CODE));
 
         if (token.isExpired()) {
             throw new IllegalArgumentException("Verification code has expired. Please request a new one.");
         }
+        if (token.getAttempts() >= MAX_ATTEMPTS) {
+            throw new IllegalArgumentException("Too many incorrect attempts. Please request a new code.");
+        }
+        if (!codesMatch(token.getCode(), code)) {
+            token.incrementAttempts();
+            emailTokenRepo.save(token);
+            throw new IllegalArgumentException(INVALID_EMAIL_CODE);
+        }
 
-        User user = token.getUser();
         user.setEnabled(true);
         userRepository.save(user);
 
@@ -103,46 +117,51 @@ public class VerificationService {
     public Optional<String> createPasswordResetToken(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email.trim().toLowerCase());
         if (userOpt.isEmpty()) {
-            // Do not leak whether the email exists
             return Optional.empty();
         }
 
         User user = userOpt.get();
         resetTokenRepo.deleteByUser_Id(user.getId());
+        resetTokenRepo.flush();
 
         String token = generateSecureToken();
         String code  = generateSixDigitCode();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(PASSWORD_RESET_MINUTES);
 
-        PasswordResetToken resetToken = new PasswordResetToken(token, code, user, expiresAt);
-        resetTokenRepo.save(resetToken);
-
+        resetTokenRepo.save(new PasswordResetToken(token, code, user, expiresAt));
         return Optional.of(code);
     }
 
     /**
-     * Validates the reset code and returns the associated user.
-     * Does NOT change the password – that is done by the caller after
-     * the new password has been checked against the PasswordPolicy.
+     * Validates the reset code for the given email and returns the user.
+     * Does NOT change the password – the caller does that after checking the PasswordPolicy.
      */
-    @Transactional(readOnly = true)
-    public User validatePasswordResetCode(String code) {
-        PasswordResetToken token = resetTokenRepo.findByCodeAndUsedFalse(code.trim())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or already used reset code"));
+    @Transactional(noRollbackFor = IllegalArgumentException.class)
+    public User validatePasswordResetCode(String email, String code) {
+        User user = userRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new IllegalArgumentException(INVALID_RESET_CODE));
+
+        PasswordResetToken token = resetTokenRepo.findByUser_IdAndUsedFalse(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException(INVALID_RESET_CODE));
 
         if (token.isExpired()) {
             throw new IllegalArgumentException("Reset code has expired. Please request a new one.");
         }
-
-        return token.getUser();
+        if (token.getAttempts() >= MAX_ATTEMPTS) {
+            throw new IllegalArgumentException("Too many incorrect attempts. Please request a new code.");
+        }
+        if (!codesMatch(token.getCode(), code)) {
+            token.incrementAttempts();
+            resetTokenRepo.save(token);
+            throw new IllegalArgumentException(INVALID_RESET_CODE);
+        }
+        return user;
     }
 
-    /**
-     * Marks the reset token as used after a successful password change.
-     */
+    /** Marks the user's reset token as used after a successful password change. */
     @Transactional
-    public void consumePasswordResetToken(String code) {
-        resetTokenRepo.findByCodeAndUsedFalse(code.trim()).ifPresent(token -> {
+    public void consumePasswordResetToken(User user) {
+        resetTokenRepo.findByUser_IdAndUsedFalse(user.getId()).ifPresent(token -> {
             token.setUsed(true);
             resetTokenRepo.save(token);
         });
@@ -151,6 +170,13 @@ public class VerificationService {
     // ─────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────
+
+    private boolean codesMatch(String expected, String supplied) {
+        if (expected == null || supplied == null) return false;
+        return java.security.MessageDigest.isEqual(
+                expected.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                supplied.trim().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
 
     private String generateSecureToken() {
         // 32 random bytes → 64 hex characters

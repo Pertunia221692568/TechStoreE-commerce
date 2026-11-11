@@ -67,7 +67,7 @@ public class AuthController {
     @PostMapping("/verify-email")
     public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
         try {
-            AuthResponse response = authService.verifyEmail(request.getCode());
+            AuthResponse response = authService.verifyEmail(request.getEmail(), request.getCode());
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest()
@@ -93,12 +93,18 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
             Map<String, Object> result = authService.resetPassword(
-                    request.getCode(), request.getNewPassword());
+                    request.getEmail(), request.getCode(), request.getNewPassword());
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", ex.getMessage()));
         }
+    }
+
+    /** Re-sends the verification code (generic response, never reveals whether the email exists). */
+    @PostMapping("/resend-verification")
+    public ResponseEntity<?> resendVerification(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.resendVerification(request.getEmail()));
     }
 
     @GetMapping("/me")

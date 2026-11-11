@@ -70,6 +70,23 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users/admin").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
 
+                        // Admin only – customer list / delete, payments, deliveries, bulk data
+                        .requestMatchers(HttpMethod.GET,    "/api/customers").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/customers/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/orders/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/payment-details/getall", "/payment-details/update",
+                                "/payment-details/delete/**").hasRole("ADMIN")
+                        .requestMatchers("/delivery/create", "/delivery/update", "/delivery/delete/**",
+                                "/delivery/getall", "/api/delivery/create", "/api/delivery/update",
+                                "/api/delivery/delete/**", "/api/delivery/getall").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/order-items", "/shopping-cart/getall",
+                                "/api/shipping-addresses").hasRole("ADMIN")
+                        .requestMatchers("/api/logins/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,    "/api/registrations/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/registrations/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/registrations/**").hasRole("ADMIN")
+
                         // Everything else requires authentication
                         .anyRequest().authenticated()
                 )

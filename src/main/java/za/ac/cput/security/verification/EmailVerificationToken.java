@@ -34,6 +34,10 @@ public class EmailVerificationToken {
     @Column(nullable = false)
     private boolean used = false;
 
+    /** Wrong guesses so far; the code is locked after too many. */
+    @Column(nullable = false)
+    private int attempts = 0;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -67,4 +71,6 @@ public class EmailVerificationToken {
 
     // Setters
     public void setUsed(boolean used) { this.used = used; }
+    public int getAttempts() { return attempts; }
+    public void incrementAttempts() { this.attempts++; }
 }

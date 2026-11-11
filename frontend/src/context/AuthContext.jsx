@@ -50,12 +50,14 @@ export function AuthProvider({ children }) {
 
     // Register does NOT log the user in – account is disabled until verified
     const register = async (formData) => {
-        return await apiRegister(formData);
+        const data = await apiRegister(formData);
+        if (data.token) applyAuth(data); // verification switched off: logged in straight away
+        return data;
         // returns { message, email, userId, customerId, verificationCode, note }
     };
 
-    const verifyEmail = async (code) => {
-        const data = await apiVerifyEmail(code);
+    const verifyEmail = async (email, code) => {
+        const data = await apiVerifyEmail(email, code);
         return applyAuth(data); // now we log them in
     };
 
@@ -63,8 +65,8 @@ export function AuthProvider({ children }) {
         return await apiForgotPassword(email);
     };
 
-    const resetPassword = async (code, newPassword) => {
-        return await apiResetPassword(code, newPassword);
+    const resetPassword = async (email, code, newPassword) => {
+        return await apiResetPassword(email, code, newPassword);
     };
 
     const logout = () => {
