@@ -16,9 +16,8 @@ public class RegisterRequest {
     private String phone;
     private String address;
 
-    @NotBlank
-    @Size(min = 6, message = "Password must be at least 6 characters")
-    private String password;
+    @NotBlank(message = "Password is required")
+    private String password;   // strength is enforced by PasswordPolicy
 
     public RegisterRequest() {}
 

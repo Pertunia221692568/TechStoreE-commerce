@@ -1,5 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { login as apiLogin, register as apiRegister } from '../services/api';
+import {
+    login as apiLogin,
+    register as apiRegister,
+    verifyEmail as apiVerifyEmail,
+    forgotPassword as apiForgotPassword,
+    resetPassword as apiResetPassword,
+} from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -24,9 +30,7 @@ export function AuthProvider({ children }) {
         else localStorage.removeItem('techvault_token');
     }, [token]);
 
-    const login = async (email, password) => {
-        const data = await apiLogin(email, password);
-        // data = { token, userId, email, firstName, lastName, role, customerId }
+    const applyAuth = (data) => {
         setToken(data.token);
         setUser({
             id: data.userId,
@@ -39,18 +43,28 @@ export function AuthProvider({ children }) {
         return data;
     };
 
+    const login = async (email, password) => {
+        const data = await apiLogin(email, password);
+        return applyAuth(data);
+    };
+
+    // Register does NOT log the user in – account is disabled until verified
     const register = async (formData) => {
-        const data = await apiRegister(formData);
-        setToken(data.token);
-        setUser({
-            id: data.userId,
-            email: data.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            role: data.role,
-            customerId: data.customerId,
-        });
-        return data;
+        return await apiRegister(formData);
+        // returns { message, email, userId, customerId, verificationCode, note }
+    };
+
+    const verifyEmail = async (code) => {
+        const data = await apiVerifyEmail(code);
+        return applyAuth(data); // now we log them in
+    };
+
+    const forgotPassword = async (email) => {
+        return await apiForgotPassword(email);
+    };
+
+    const resetPassword = async (code, newPassword) => {
+        return await apiResetPassword(code, newPassword);
     };
 
     const logout = () => {
@@ -67,6 +81,9 @@ export function AuthProvider({ children }) {
                 token,
                 login,
                 register,
+                verifyEmail,
+                forgotPassword,
+                resetPassword,
                 logout,
                 isAuthenticated: !!token,
                 isAdmin: user?.role === 'ADMIN',

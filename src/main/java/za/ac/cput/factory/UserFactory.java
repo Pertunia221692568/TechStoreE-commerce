@@ -13,6 +13,10 @@ import za.ac.cput.domain.User;
  */
 public class UserFactory {
 
+    /**
+     * Creates a customer account that starts DISABLED.
+     * The account is only enabled after the user verifies their email.
+     */
     public static User createCustomerUser(String email, String passwordHash,
                                           String firstName, String lastName, String phone) {
         return new User.Builder()
@@ -22,7 +26,7 @@ public class UserFactory {
                 .lastName(lastName)
                 .phone(phone)
                 .role(Role.CUSTOMER)
-                .enabled(true)
+                .enabled(false)          // must verify email first
                 .build();
     }
 
