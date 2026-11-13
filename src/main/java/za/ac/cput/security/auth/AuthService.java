@@ -98,8 +98,9 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(email, request.getPassword())
             );
         } catch (DisabledException ex) {
-            throw new IllegalStateException(
-                    "Account is not verified. Please enter the verification code sent to your email.");
+            throw new IllegalStateException(requireEmailVerification
+                    ? "Account is not verified. Please enter the verification code sent to your email."
+                    : "This account has been disabled. Please contact the store administrator.");
         } catch (BadCredentialsException ex) {
             loginAttemptService.recordFailure(email);
             throw new BadCredentialsException("Invalid email or password");

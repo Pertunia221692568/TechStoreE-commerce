@@ -90,6 +90,7 @@ public class CustomerController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
+        customerOwnershipPolicy.checkAccess(id);
         customerService.delete(id);
         return ResponseEntity.noContent().build();
     }

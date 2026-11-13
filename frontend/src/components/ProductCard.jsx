@@ -52,9 +52,11 @@ export default function ProductCard({ product }) {
         e.preventDefault();
         e.stopPropagation();
         if (!inStock) return;
-        addToCart(product, 1);
-        setAdded(true);
-        setTimeout(() => setAdded(false), 1500);
+        addToCart(product, 1).then((ok) => {
+            if (!ok) return; // not signed in or the server refused: do not say Added
+            setAdded(true);
+            setTimeout(() => setAdded(false), 1500);
+        });
     };
 
     return (

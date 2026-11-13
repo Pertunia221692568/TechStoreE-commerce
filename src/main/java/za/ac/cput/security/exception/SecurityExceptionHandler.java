@@ -31,7 +31,7 @@ public class SecurityExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Map.of("error", ex.getMessage() != null
                         ? ex.getMessage()
-                        : "Account is disabled. Please verify your email."));
+                        : "This account has been disabled."));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

@@ -1,6 +1,5 @@
 package za.ac.cput.security.auth;
 
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,8 +12,9 @@ import java.util.List;
 
 /**
  * Loads user details for Spring Security authentication.
- * Distinguishes between "user does not exist" and "user exists but is disabled"
- * so that the login flow can return a clear "please verify your email" message.
+ * A disabled account is returned with disabled=true; Spring Security then raises a
+ * DisabledException, which AuthService turns into a clear message (disabled by an
+ * admin, or not yet verified when email verification is switched on).
  */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -29,10 +29,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email.trim().toLowerCase())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
-
-        if (!user.isEnabled()) {
-            throw new DisabledException("Account is not verified. Please verify your email first.");
-        }
 
         String authority = "ROLE_" + user.getRole().name();
 

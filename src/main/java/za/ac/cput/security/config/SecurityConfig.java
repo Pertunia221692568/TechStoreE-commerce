@@ -72,7 +72,7 @@ public class SecurityConfig {
 
                         // Admin only – customer list / delete, payments, deliveries, bulk data
                         .requestMatchers(HttpMethod.GET,    "/api/customers").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/customers/**").hasRole("ADMIN")
+                        // DELETE /api/customers/{id}: owner or admin (checked by CustomerOwnershipPolicy)
                         .requestMatchers(HttpMethod.DELETE, "/api/orders/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/payment-details/getall", "/payment-details/update",
@@ -87,8 +87,32 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,    "/api/registrations/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/registrations/**").hasRole("ADMIN")
 
+                        // Admin only – endpoints the website never uses for customers
+                        // (they would let one customer read or change another customer's data)
+                        .requestMatchers("/api/order-items/**").hasRole("ADMIN")
+                        .requestMatchers("/delivery/**", "/api/delivery/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,    "/api/shipping-addresses/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/shipping-addresses/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/shipping-addresses/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/ratings/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/ratings/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/shopping-cart/create", "/shopping-cart/update").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/shopping-cart/delete").hasRole("ADMIN")
+
                         // Everything else requires authentication
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, e) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\":\"Authentication required. Please sign in.\"}");
+                        })
+                        .accessDeniedHandler((request, response, e) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\":\"Access denied. You do not have permission to do this.\"}");
+                        })
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

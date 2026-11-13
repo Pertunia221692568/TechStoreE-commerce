@@ -16,6 +16,7 @@ import HelpCentre from './pages/HelpCentre';
 import ShippingInfo from './pages/ShippingInfo';
 import Returns from './pages/Returns';
 import Contact from './pages/Contact';
+import NotFound from './pages/NotFound';
 import RequireAdmin from './components/admin/RequireAdmin';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminLogin from './pages/admin/AdminLogin';
@@ -61,6 +62,7 @@ export default function App() {
                             <Route path="/shipping" element={<ShippingInfo />} />
                             <Route path="/returns" element={<Returns />} />
                             <Route path="/contact" element={<Contact />} />
+                            <Route path="*" element={<NotFound />} />
                         </Route>
 
                         {/* Admin site: its own login and layout */}

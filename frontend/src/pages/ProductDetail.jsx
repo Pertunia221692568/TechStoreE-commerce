@@ -117,9 +117,11 @@ export default function ProductDetail() {
             : 0;
 
     const handleAdd = () => {
-        addToCart(product, qty);
-        setAdded(true);
-        setTimeout(() => setAdded(false), 2000);
+        addToCart(product, qty).then((ok) => {
+            if (!ok) return; // not signed in or the server refused: do not say Added
+            setAdded(true);
+            setTimeout(() => setAdded(false), 2000);
+        });
     };
 
     return (
